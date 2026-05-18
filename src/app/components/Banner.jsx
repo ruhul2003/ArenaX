@@ -4,10 +4,10 @@ import { FaStarHalf } from "react-icons/fa";
 
 const Banner = () => {
     return (
-        <div className="relative min-h-[90vh] flex items-center bg-[url('/images/hero.jpg')] bg-cover bg-center overflow-hidden">
-            {/* Background Overlay */}
+        <div className="relative min-h-[90vh] flex items-center bg-[url('/images/hero2.jpg')] bg-cover bg-center overflow-hidden">
+
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1622473596135-2e2c2e2e2e2e')] bg-cover bg-center"></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-[#031637]/95 via-[#031637]/90 to-[#031637]/70"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#031637]/95 via-[#031637]/90 to-[#031637]/80"></div>
 
             {/* Content */}
             <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-16 md:pt-24">
@@ -44,7 +44,7 @@ const Banner = () => {
                             </div>
                         </div>
 
-                        {/* First Divider - Fixed with self-stretch */}
+                        {/* First Divider */}
                         <div className="w-full h-px md:w-px md:h-12 bg-white/10 self-stretch md:self-auto shrink-0"></div>
 
                         {/* Venues */}
@@ -56,7 +56,7 @@ const Banner = () => {
                             </div>
                         </div>
 
-                        {/* Second Divider - Fixed with self-stretch */}
+                        {/* Second Divider  */}
                         <div className="w-full h-px md:w-px md:h-12 bg-white/10 self-stretch md:self-auto shrink-0"></div>
 
                         {/* Bookings */}
