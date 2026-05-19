@@ -1,6 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+        ],
+    },
+
+    // Disable Turbopack and use Webpack (Recommended for stability right now)
+    experimental: {
+        // Remove this line if you want to try Turbopack
+        turbopack: false,
+    },
+
+    // If you want to use Turbopack, remove the webpack config below
 };
 
 export default nextConfig;
