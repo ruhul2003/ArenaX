@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const AllFacilities = () => {
     const [facilities, setFacilities] = useState([]);
@@ -118,9 +119,11 @@ const AllFacilities = () => {
                                         </div>
                                     </div>
 
-                                    <button className="mt-6 w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02]">
-                                        View Details & Book
-                                    </button>
+                                    <Link href={`/facility/${facility.id}`}>
+                                        <button className="mt-6 w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02]">
+                                            View Details & Book
+                                        </button>
+                                    </Link>
                                 </div>
                             </div>
                         ))}

@@ -20,9 +20,9 @@ const NavBar = () => {
                 <div className="flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center">
-                        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                        <Link href="/" className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                             Arena<span className="text-[#00D4FF]">X</span>
-                        </h1>
+                        </Link>
                     </div>
 
                     {/* Desktop Navigation */}
