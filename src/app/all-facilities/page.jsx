@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -9,11 +8,11 @@ const AllFacilities = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Fetch facilities from your backend/MongoDB
+    // Fetch facilities from backend
     useEffect(() => {
         const fetchFacilities = async () => {
             try {
-                const res = await fetch('http://localhost:5000/facilities'); // Adjust API route as needed
+                const res = await fetch('http://localhost:5000/facilities');
                 const data = await res.json();
                 setFacilities(data);
             } catch (error) {
@@ -76,7 +75,7 @@ const AllFacilities = () => {
                         {filteredFacilities.map((facility) => (
                             <div
                                 key={facility._id || facility.id}
-                                className="bg-[#0A1F3D] rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
+                                className="bg-[#0A1F3D] rounded-3xl flex flex-col justify-between overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
                             >
                                 {/* Image */}
                                 <div className="relative h-56 overflow-hidden">
@@ -88,12 +87,12 @@ const AllFacilities = () => {
                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                                     />
                                     <div className="absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-3 py-1 rounded-full">
-                                        {facility.sportType || 'Multi-Sport'}
+                                        {facility.sportType || facility.facility_type || 'Multi-Sport'}
                                     </div>
                                 </div>
 
                                 {/* Content */}
-                                <div className="p-6">
+                                <div className="p-6 flex flex-col flex-1">
                                     <h3 className="text-xl font-semibold text-white line-clamp-2">
                                         {facility.name}
                                     </h3>
@@ -107,7 +106,7 @@ const AllFacilities = () => {
                                         <div className="flex items-center gap-1">
                                             <span className="text-[#00D4FF]">★</span>
                                             <span className="text-white font-medium">
-                                                {facility.booking_count}
+                                                {facility.rating || '4.8'}
                                             </span>
                                         </div>
 
@@ -119,8 +118,12 @@ const AllFacilities = () => {
                                         </div>
                                     </div>
 
-                                    <Link href={`/facility/${facility.id}`}>
-                                        <button className="mt-6 w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02]">
+                                    {/* FIXED LINK - Using _id */}
+                                    <Link 
+                                        href={`/facility/${facility._id?.toString() || facility.id}`}
+                                        className="mt-auto pt-6"
+                                    >
+                                        <button className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02]">
                                             View Details & Book
                                         </button>
                                     </Link>

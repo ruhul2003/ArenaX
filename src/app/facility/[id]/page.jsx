@@ -2,10 +2,13 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Star, MapPin, Clock, Users } from 'lucide-react';
-import BookButton from './BookButton';   // ← New Client Component
+import BookButton from '../BookButton';
 
 const FacilityDetails = async ({ params }) => {
-    const { id } = params;
+    // ✅ Important: Await params in Next.js 15+
+    const { id } = await params;
+
+    console.log("✅ ID from URL:", id);
 
     let facility = null;
     let error = null;
@@ -13,20 +16,18 @@ const FacilityDetails = async ({ params }) => {
     try {
         const res = await fetch('http://localhost:5000/facilities', {
             cache: 'no-store',
-            next: { revalidate: 0 }
+            next: { revalidate: 0 },
         });
-
-        if (!res.ok) throw new Error('Failed to fetch facility');
 
         const facilities = await res.json();
 
-        facility = facilities.find(f => 
-            f._id?.toString() === id || 
-            f.id?.toString() === id
-        );
+        facility = facilities.find(f => {
+            const dbId = f._id?.toString() || f.id?.toString();
+            return dbId === id;
+        });
     } catch (err) {
         console.error("Error fetching facility:", err);
-        error = "Failed to load facility details. Please try again.";
+        error = "Failed to load facility details.";
     }
 
     if (error || !facility) {
@@ -34,7 +35,7 @@ const FacilityDetails = async ({ params }) => {
             <div className="min-h-screen bg-[#031637] flex flex-col items-center justify-center text-white px-6 py-20">
                 <h1 className="text-5xl font-bold mb-4">Facility Not Found</h1>
                 <p className="text-red-400 mb-8 text-center max-w-md">
-                    {error || `No facility found with ID: ${id}`}
+                    No facility found with ID: <span className="font-mono">{id || 'undefined'}</span>
                 </p>
                 <Link 
                     href="/all-facilities"
@@ -49,10 +50,9 @@ const FacilityDetails = async ({ params }) => {
     return (
         <div className="min-h-screen bg-[#031637] pb-20">
             <div className="max-w-7xl mx-auto px-6 pt-8">
-                {/* Breadcrumb */}
                 <Link 
                     href="/all-facilities" 
-                    className="inline-flex items-center gap-2 text-[#00D4FF] hover:text-[#00E5FF] transition-colors mb-8 group"
+                    className="inline-flex items-center gap-2 text-[#00D4FF] hover:text-[#00E5FF] transition-colors mb-10 group"
                 >
                     <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                     Back to All Facilities
@@ -69,9 +69,9 @@ const FacilityDetails = async ({ params }) => {
                             sizes="(max-width: 1024px) 100vw, 50vw"
                             priority
                         />
-                        <div className="absolute top-6 right-6 bg-black/70 backdrop-blur-md text-white text-sm font-medium px-4 py-2 rounded-full flex items-center gap-2">
+                        <div className="absolute top-6 right-6 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
                             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                            {facility.sportType || facility.facility_type || 'Sports Venue'}
+                            {facility.facility_type || 'Sports Venue'}
                         </div>
                     </div>
 
@@ -87,7 +87,6 @@ const FacilityDetails = async ({ params }) => {
                             </div>
                         </div>
 
-                        {/* Rating & Info */}
                         <div className="flex flex-wrap items-center gap-6 text-lg">
                             <div className="flex items-center gap-1.5">
                                 <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
@@ -104,15 +103,13 @@ const FacilityDetails = async ({ params }) => {
                             </div>
                         </div>
 
-                        {/* Description */}
                         <div>
                             <h3 className="text-xl font-semibold mb-4 text-white">About this venue</h3>
                             <p className="text-white/80 leading-relaxed text-[17px]">
-                                {facility.description || "Premium sports facility with world-class amenities and professional maintenance."}
+                                {facility.description || "No description available."}
                             </p>
                         </div>
 
-                        {/* Pricing */}
                         <div className="bg-[#0A1F3D] rounded-3xl p-8 border border-white/5">
                             <p className="text-white/60 text-sm uppercase tracking-widest">Hourly Rate</p>
                             <p className="text-6xl font-bold text-[#00D4FF] mt-3">
@@ -121,21 +118,18 @@ const FacilityDetails = async ({ params }) => {
                             </p>
                         </div>
 
-                        {/* Booking Button - Client Component */}
                         <BookButton facility={facility} />
                     </div>
                 </div>
 
-                {/* Additional Info Sections */}
+                {/* Bottom Sections */}
                 <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Amenities, Rules, Location cards remain the same */}
                     <div className="bg-[#0A1F3D] rounded-3xl p-8">
                         <h4 className="font-semibold text-lg mb-6 text-white">Amenities</h4>
                         <ul className="space-y-3 text-white/80">
                             {['Changing Rooms', 'Parking', 'WiFi', 'Drinking Water', 'First Aid'].map((item, i) => (
                                 <li key={i} className="flex items-center gap-3">
-                                    <div className="w-1.5 h-1.5 bg-[#00D4FF] rounded-full" />
-                                    {item}
+                                    <div className="w-1.5 h-1.5 bg-[#00D4FF] rounded-full" /> {item}
                                 </li>
                             ))}
                         </ul>
