@@ -1,11 +1,13 @@
 import React from 'react';
 import { getFacilities } from '../lib/data';
+import Image from 'next/image';
+import { FaStar } from "react-icons/fa";
 
 const Featured = async () => {
     const facilities = await getFacilities();
 
     return (
-        <div className="py-16 bg-[#0A1F3D]">
+        <div className="py-16 md:py-24 bg-[#031637]">
             <div className="max-w-7xl mx-auto px-6">
                 {/* Section Header */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10">
@@ -27,7 +29,7 @@ const Featured = async () => {
                 </div>
 
                 {/* Facilities Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                     {facilities.map((facility) => (
                         <div
                             key={facility.id}
@@ -35,10 +37,12 @@ const Featured = async () => {
                         >
                             {/* Image */}
                             <div className="relative h-56 overflow-hidden">
-                                <img
+                                <Image
                                     src={facility.image || '/placeholder.jpg'}
                                     alt={facility.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    fill
+                                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                                 />
                                 <div className="absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-3 py-1 rounded-full">
                                     {facility.sportType || 'Multi-Sport'}
@@ -58,13 +62,12 @@ const Featured = async () => {
                                 {/* Rating & Price */}
                                 <div className="flex justify-between items-center mt-6">
                                     <div className="flex items-center gap-1">
-                                        <span className="text-[#00D4FF]">★</span>
-                                        <span className="text-white font-medium">{facility.rating}</span>
-                                        <span className="text-white/50 text-sm">({facility.reviews || 0})</span>
+                                        <FaStar className="text-[#00D4FF]" />
+                                        <span className="text-white font-medium">{facility.booking_count}</span>
                                     </div>
 
                                     <div>
-                                        <span className="text-[#00D4FF] font-bold text-xl">৳{facility.price}</span>
+                                        <span className="text-[#00D4FF] font-bold text-xl">tk {facility.price_per_hour}</span>
                                         <span className="text-white/50 text-sm">/hr</span>
                                     </div>
                                 </div>

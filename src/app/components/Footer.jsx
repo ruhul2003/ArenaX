@@ -7,7 +7,7 @@ function Footer() {
     return (
         <div className="bg-[#031637] text-white">
 
-            <div className="w-full md:w-4/5 mx-auto px-6 py-16">
+            <div className="w-full border-t border-white/10 md:w-4/5 mx-auto px-6 py-16">
 
                 {/* TOP GRID */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-12 lg:gap-8 mb-12">
