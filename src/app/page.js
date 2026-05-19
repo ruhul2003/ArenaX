@@ -1,6 +1,7 @@
 
 import Banner from "./components/Banner";
 import Featured from "./components/Featured";
+import WhyChooseUs from "./components/WhyChooseUs";
 
 
 export default function Home() {
@@ -8,6 +9,7 @@ export default function Home() {
     <div>
       <Banner />
       <Featured />
+      <WhyChooseUs /> 
     </div>
   );
 }
