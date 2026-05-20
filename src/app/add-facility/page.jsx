@@ -2,16 +2,16 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    Plus, 
-    Upload, 
-    DollarSign, 
-    MapPin, 
-    Activity, 
-    Clock, 
-    FileText, 
-    X, 
-    CheckCircle 
+import {
+    Plus,
+    Upload,
+    DollarSign,
+    MapPin,
+    Activity,
+    Clock,
+    FileText,
+    X,
+    CheckCircle
 } from 'lucide-react';
 
 const AddFacilityPage = () => {
@@ -32,7 +32,7 @@ const AddFacilityPage = () => {
 
     const [images, setImages] = useState([]);
     const [imageUrlInput, setImageUrlInput] = useState('');
-    
+
     // Default operational timings layout
     const [timings, setTimings] = useState({
         openTime: '08:00',
@@ -74,15 +74,8 @@ const AddFacilityPage = () => {
         setLoading(true);
         setError('');
 
-        // Basic Validation Checks
         if (images.length === 0) {
             setError('Please add at least one facility image URL.');
-            setLoading(false);
-            return;
-        }
-
-        if (parseFloat(formData.pricePerHour) <= 0) {
-            setError('Price per hour must be a positive number.');
             setLoading(false);
             return;
         }
@@ -93,18 +86,22 @@ const AddFacilityPage = () => {
                 pricePerHour: parseFloat(formData.pricePerHour),
                 images: images,
                 timings: timings,
-                createdAt: new Date().toISOString()
             };
 
-            // TODO: Replace with your actual database API call line
-            // const response = await fetch('/api/facilities', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(payload)
-            // });
-            // if (!response.ok) throw new Error('Failed to create facility');
+            // Hit our custom backend API route
+            const response = await fetch('/api/facilities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
 
-            console.log('Submitted Facility Payload Data:', payload);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create facility');
+            }
 
             setSuccess(true);
             setTimeout(() => {
@@ -112,7 +109,7 @@ const AddFacilityPage = () => {
             }, 2000);
 
         } catch (err) {
-            console.error('Facility Submission Client Error:', err);
+            console.error('Facility Submission Error:', err);
             setError(err.message || 'Something went wrong while listing this facility.');
         } finally {
             setLoading(false);
@@ -122,7 +119,7 @@ const AddFacilityPage = () => {
     return (
         <div className="min-h-screen bg-[#031637] text-white px-6 py-12 flex justify-center items-center">
             <div className="w-full max-w-4xl">
-                
+
                 {/* Header Context */}
                 <div className="mb-10 text-center md:text-left">
                     <h1 className="text-4xl font-bold tracking-tight">
@@ -135,7 +132,7 @@ const AddFacilityPage = () => {
 
                 {/* Main Dynamic Card Form */}
                 <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10 shadow-2xl relative overflow-hidden">
-                    
+
                     {success ? (
                         <div className="py-16 flex flex-col items-center justify-center space-y-4 animate-fade-in">
                             <CheckCircle size={80} className="text-[#00D4FF] animate-bounce" />
@@ -144,7 +141,7 @@ const AddFacilityPage = () => {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-8">
-                            
+
                             {/* Section 1: Core Details */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
@@ -234,7 +231,7 @@ const AddFacilityPage = () => {
                                         <input
                                             type="time"
                                             value={timings.openTime}
-                                            onChange={(e) => setTimings({...timings, openTime: e.target.value})}
+                                            onChange={(e) => setTimings({ ...timings, openTime: e.target.value })}
                                             className="w-full px-5 py-3 bg-[#0A1F3D] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00D4FF] transition"
                                             required
                                         />
@@ -244,7 +241,7 @@ const AddFacilityPage = () => {
                                         <input
                                             type="time"
                                             value={timings.closeTime}
-                                            onChange={(e) => setTimings({...timings, closeTime: e.target.value})}
+                                            onChange={(e) => setTimings({ ...timings, closeTime: e.target.value })}
                                             className="w-full px-5 py-3 bg-[#0A1F3D] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00D4FF] transition"
                                             required
                                         />
@@ -258,7 +255,7 @@ const AddFacilityPage = () => {
                                     <Upload size={18} /> Image Gallery URLs
                                 </h3>
                                 <p className="text-xs text-white/50 mb-3">Provide hosted URLs for photos displaying court layouts or amenities.</p>
-                                
+
                                 <div className="flex gap-3">
                                     <input
                                         type="url"
