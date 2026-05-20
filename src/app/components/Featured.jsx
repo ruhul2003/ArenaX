@@ -32,7 +32,7 @@ const Featured = async () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                     {facilities.map((facility) => (
                         <div
-                            key={facility.id}
+                            key={facility._id || facility.id}   // ← Fixed: Use _id
                             className="bg-[#031637] rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
                         >
                             {/* Image */}
@@ -45,7 +45,7 @@ const Featured = async () => {
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                                 />
                                 <div className="absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-3 py-1 rounded-full">
-                                    {facility.sportType || 'Multi-Sport'}
+                                    {facility.sportType || facility.facility_type || 'Multi-Sport'}
                                 </div>
                             </div>
 
@@ -63,19 +63,26 @@ const Featured = async () => {
                                 <div className="flex justify-between items-center mt-6">
                                     <div className="flex items-center gap-1">
                                         <FaStar className="text-[#00D4FF]" />
-                                        <span className="text-white font-medium">{facility.booking_count}</span>
+                                        <span className="text-white font-medium">
+                                            {facility.rating || '4.8'}
+                                        </span>
                                     </div>
 
                                     <div>
-                                        <span className="text-[#00D4FF] font-bold text-xl">tk {facility.price_per_hour}</span>
+                                        <span className="text-[#00D4FF] font-bold text-xl">
+                                            ৳{facility.price_per_hour}
+                                        </span>
                                         <span className="text-white/50 text-sm">/hr</span>
                                     </div>
                                 </div>
 
                                 {/* Book Button */}
-                                <button className="mt-6 w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-95">
+                                <a 
+                                    href={`/facility/${facility._id || facility.id}`}
+                                    className="mt-6 block w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl text-center transition-all duration-200 hover:scale-[1.02]"
+                                >
                                     Book Now
-                                </button>
+                                </a>
                             </div>
                         </div>
                     ))}

@@ -69,7 +69,7 @@ const FacilityDetails = async ({ params }) => {
                             sizes="(max-width: 1024px) 100vw, 50vw"
                             priority
                         />
-                        <div className="absolute top-6 right-6 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+                        <div className="absolute top-6 text-gray-500 right-6 bg-black/70 backdrop-blur-md px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
                             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                             {facility.facility_type || 'Sports Venue'}
                         </div>

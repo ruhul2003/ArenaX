@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { FaStar } from "react-icons/fa";
 import { FaStarHalf } from "react-icons/fa";
+import Link from "next/link";
 
 const Banner = () => {
     return (
@@ -21,10 +23,15 @@ const Banner = () => {
                         Find and book top-quality sports fields in just a few clicks. Whether it’s football, cricket, badminton, or futsal — discover the perfect venue, choose your preferred time, and get ready to play.
                     </p>
 
+
+
                     <div className="mt-10 flex flex-wrap justify-center gap-4">
-                        <button className="bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold px-10 py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-105 active:scale-95">
+                        <Link
+                            href="/all-facilities"
+                            className="bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold px-10 py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-105 active:scale-95 inline-block"
+                        >
                             Explore Facilities
-                        </button>
+                        </Link>
                     </div>
 
                     {/* Trust Indicators */}

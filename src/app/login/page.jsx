@@ -2,30 +2,61 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
 
+    const router = useRouter();
+
     const handleChange = (e) => {
+        setError('');
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Login Data:', formData);
-        // Add your login logic here
+        setLoading(true);
+        setError('');
+
+        try {
+            const res = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Login failed");
+            }
+
+            // Success
+            alert("Login successful! Welcome back.");
+            router.push('/all-facilities');   // or '/' for home
+
+        } catch (err) {
+            console.error(err);
+            setError(err.message || "Invalid email or password");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleGoogleSignIn = () => {
-        console.log('Sign in with Google clicked');
-        // Add Google OAuth logic here
+        alert("Google Sign-In coming soon...");
+        // We'll implement this later with Better Auth or Firebase
     };
 
     return (
@@ -83,12 +114,20 @@ const LoginPage = () => {
                             </div>
                         </div>
 
+                        {/* Error Message */}
+                        {error && (
+                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl">
+                                {error}
+                            </p>
+                        )}
+
                         {/* Sign In Button */}
                         <button
                             type="submit"
-                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.02]"
+                            disabled={loading}
+                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-70 text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.02]"
                         >
-                            Sign In
+                            {loading ? "Signing in..." : "Sign In"}
                         </button>
                     </form>
 
@@ -99,7 +138,7 @@ const LoginPage = () => {
                         <div className="h-px bg-white/10 flex-1"></div>
                     </div>
 
-                    {/* Sign in with Google */}
+                    {/* Google Sign In */}
                     <button
                         onClick={handleGoogleSignIn}
                         className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black font-medium py-4 rounded-2xl transition-all duration-200"
@@ -107,7 +146,6 @@ const LoginPage = () => {
                         <Image 
                             src="https://www.google.com/favicon.ico" 
                             alt="Google" 
-                            
                             width={20}
                             height={20}
                         />
@@ -116,8 +154,8 @@ const LoginPage = () => {
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
-                   <h2>Do not have an account?</h2>{' '}
-                    <a href="/register" className="text-[#00D4FF] hover:underline">
+                    Don't have an account?{' '}
+                    <a href="/register" className="text-[#00D4FF] hover:underline font-medium">
                         Sign up
                     </a>
                 </p>
