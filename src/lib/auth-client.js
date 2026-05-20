@@ -1,10 +1,6 @@
-// src/lib/auth-client.js
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-    baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:5000",
-    
-    fetchOptions: {
-        credentials: "include",
-    },
+    // Point directly to your Next.js app domain
+    baseURL: "http://localhost:3000" 
 });

@@ -1,4 +1,6 @@
 'use client';
+
+import {authClient} from '../../lib/auth-client';
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
@@ -24,35 +26,38 @@ const LoginPage = () => {
         });
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+   // src/app/login/page.jsx (Modify the handleSubmit function)
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-        try {
-            const res = await fetch('http://localhost:5000/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+    try {
+        // 1. Trigger sign-in without a rigid callbackURL redirect
+        const { data, error } = await authClient.signIn.email({
+            email: formData.email,
+            password: formData.password,
+            // ❌ Removed callbackURL here to manage navigation safely via Next.js router
+        });
 
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || "Login failed");
-            }
-
-            // Success
-            alert("Login successful! Welcome back.");
-            router.push('/all-facilities');   // or '/' for home
-
-        } catch (err) {
-            console.error(err);
-            setError(err.message || "Invalid email or password");
-        } finally {
-            setLoading(false);
+        if (error) {
+            throw new Error(error.message || "Invalid email or password");
         }
-    };
+
+        // 2. Refresh the router first to update Server Component layouts (like your NavBar)
+        // This ensures the fresh session cookies are immediately available to the backend middleware
+        router.refresh(); 
+
+        // 3. Move the user smoothly to the dashboard or facilities view
+        router.push('/');
+
+    } catch (err) {
+        console.error("Login client error:", err);
+        setError(err.message || "Invalid email or password");
+    } finally {
+        setLoading(false);
+    }
+};
 
     const handleGoogleSignIn = () => {
         alert("Google Sign-In coming soon...");

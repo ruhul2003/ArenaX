@@ -1,39 +1,26 @@
+// src/middleware.js
 import { NextResponse } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request) {
-    const sessionCookie = getSessionCookie(request);
-    const { pathname } = request.nextUrl;
+  // Check for the session cookie set by Better Auth
+  const sessionCookie = request.cookies.get("better-auth.session_token") || 
+                        request.cookies.get("__secure-better-auth.session_token");
 
-    // ✅ Public routes - anyone can access
-    const publicRoutes = [
-        "/",
-        "/login",
-        "/register",
-        "/all-facilities",
-        "/facility"
-    ];
+  const { pathname } = request.nextUrl;
 
-    // Check if current route is public
-    const isPublicRoute = publicRoutes.some(route => 
-        pathname === route || pathname.startsWith(route)
-    );
+  // Protect your private app routes if cookie is missing
+  if (!sessionCookie && pathname.startsWith("/all-facilities")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-    // If user is NOT logged in and tries to access protected route
-    if (!sessionCookie && !isPublicRoute) {
-        return NextResponse.redirect(new URL("/login", request.url));
-    }
+  // Redirect authenticated users away from auth forms
+  if (sessionCookie && (pathname === "/login" || pathname === "/signup")) {
+    return NextResponse.redirect(new URL("/all-facilities", request.url));
+  }
 
-    // If user IS logged in and tries to access login or register
-    if (sessionCookie && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
-        return NextResponse.redirect(new URL("/all-facilities", request.url));
-    }
-
-    return NextResponse.next();
+  return NextResponse.next();
 }
 
 export const config = {
-    matcher: [
-        "/((?!api|_next/static|_next/image|favicon.ico).*)",
-    ]
+  matcher: ["/all-facilities/:path*", "/login", "/signup"],
 };

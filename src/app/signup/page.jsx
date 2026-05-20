@@ -1,8 +1,9 @@
 'use client';
+
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { FcGoogle } from "react-icons/fc";
-import { authClient } from '@/lib/auth-client';
+import { authClient } from '../../lib/auth-client'; 
 import { useRouter } from 'next/navigation';
 
 const SignupPage = () => {
@@ -27,39 +28,62 @@ const SignupPage = () => {
         });
     };
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-    try {
-        const res = await fetch('http://localhost:5000/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        // 1. Password validation criteria check
+        const password = formData.password;
+        const hasMinLength = password.length >= 6;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
 
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data.message || "Registration failed");
+        if (!hasMinLength || !hasUppercase || !hasLowercase) {
+            setError(
+                "Password must be at least 6 characters long and contain both uppercase and lowercase letters."
+            );
+            setLoading(false);
+            return;
         }
 
-        alert("✅ Account created successfully!");
-        router.push('/login');
-    } catch (err) {
-        setError(err.message);
-    } finally {
-        setLoading(false);
-    }
-};
+        try {
+            // Create the signup payload dynamically
+            const signupPayload = {
+                email: formData.email,
+                password: formData.password,
+                name: formData.name,
+            };
+
+            // Only add the image property if it's a non-empty string
+            if (formData.image && formData.image.trim() !== "") {
+                signupPayload.image = formData.image;
+            }
+
+            const { data, error: authError } = await authClient.signUp.email(signupPayload);
+
+            if (authError) {
+                throw new Error(authError.message || "Registration failed");
+            }
+
+            alert("✅ Account created successfully!");
+            router.push('/login');
+            
+        } catch (err) {
+            console.error("Signup Client Error:", err);
+            setError(err.message || "Registration failed");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleGoogleSignUp = async () => {
         setLoading(true);
+        setError('');
         try {
             await authClient.signIn.social({
                 provider: 'google',
-                callbackURL: '/all-facilities'
+                callbackURL: '/all-facilities' 
             });
         } catch (err) {
             setError("Google signup failed");
@@ -150,7 +174,11 @@ const handleSubmit = async (e) => {
                             </div>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                        {error && (
+                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl border border-red-500/20">
+                                {error}
+                            </p>
+                        )}
 
                         <button
                             type="submit"

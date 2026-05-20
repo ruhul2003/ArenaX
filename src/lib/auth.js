@@ -1,12 +1,25 @@
+// src/lib/auth.js
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 
+if (!process.env.MONGODB_URI) {
+    throw new Error("Missing MONGODB_URI in environment variables");
+}
+
 const client = new MongoClient(process.env.MONGODB_URI);
+const db = client.db("ArenaX");
 
 export const auth = betterAuth({
-    database: mongodbAdapter(client.db("ArenaX"), {
-        user: "Users",
+    database: mongodbAdapter(db, {
+        // Map core user accounts directly into your specific collection
+        user: "Users", 
+        
+        // Better Auth requires these schemas to maintain authentication cycles;
+        // they can reside cleanly inside your ArenaX database alongside it.
+        session: "auth_sessions", 
+        account: "auth_accounts", 
+        verification: "auth_verifications"
     }),
 
     emailAndPassword: {
@@ -16,14 +29,5 @@ export const auth = betterAuth({
     },
 
     appName: "ArenaX",
-
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5000",   // ← Added this
-
-    advanced: {
-        defaultCookieAttributes: {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-        },
-    },
+    baseURL: "http://localhost:3000", 
 });
