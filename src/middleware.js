@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 
 export async function middleware(request) {
-  const sessionCookie = request.cookies.get("better-auth.session_token") || 
-                        request.cookies.get("__secure-better-auth.session_token");
+  const sessionCookie = request.cookies.get("token");
 
   const { pathname } = request.nextUrl;
 
-  if (!sessionCookie && pathname.startsWith("/all-facilities")) {
+  if (!sessionCookie && (pathname.startsWith("/all-facilities") || pathname.startsWith("/add-facility"))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -18,5 +17,10 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/all-facilities/:path*", "/login", "/signup"],
+  matcher: [
+    "/all-facilities/:path*", 
+    "/add-facility/:path*", 
+    "/login", 
+    "/signup"
+  ],
 };
