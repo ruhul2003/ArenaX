@@ -45,41 +45,48 @@ const AddFacilityPage = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+      e.preventDefault();
+      setLoading(true);
+      setError('');
 
-        try {
-            const payload = {
-                name: formData.name,
-                facility_type: formData.facility_type,
-                location: formData.location,
-                price_per_hour: parseInt(formData.price_per_hour, 10), 
-                capacity: parseInt(formData.capacity, 10),
-                description: formData.description,
-                image: formData.image.trim(),                                          
-                available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
-                booking_count: parseInt(formData.booking_count, 10) || 0 
-            };
+      try {
+          const payload = {
+              name: formData.name,
+              facility_type: formData.facility_type,
+              location: formData.location,
+              price_per_hour: parseInt(formData.price_per_hour, 10), 
+              capacity: parseInt(formData.capacity, 10),
+              description: formData.description,
+              image: formData.image.trim(),                                                  
+              available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
+              booking_count: parseInt(formData.booking_count, 10) || 0 
+          };
 
-            const response = await fetch('/api/facilities', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+          // Fallback to localhost if env isn't loaded
+          const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+          
+          // ✅ FIXED: Points directly to your backend AND sends secure cross-origin authentication cookies
+          const response = await fetch(`${serverUrl}/facilities`, {
+              method: 'POST',
+              headers: { 
+                  'Content-Type': 'application/json' 
+              },
+              credentials: 'include', // 👈 CRITICAL: This passes the HTTP-only JWT login token to your server
+              body: JSON.stringify(payload)
+          });
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Failed to create facility');
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || data.error || 'Failed to create facility');
 
-            setSuccess(true);
-            setTimeout(() => router.push('/all-facilities'), 2000);
+          setSuccess(true);
+          setTimeout(() => router.push('/all-facilities'), 2000);
 
-        } catch (err) {
-            setError(err.message || 'Something went wrong.');
-        } finally {
-            setLoading(false);
-        }
-    };
+      } catch (err) {
+          setError(err.message || 'Something went wrong.');
+      } finally {
+          setLoading(false);
+      }
+  };
 
     return (
         <div className="min-h-screen bg-[#031637] text-white px-6 py-12 flex justify-center items-center">
