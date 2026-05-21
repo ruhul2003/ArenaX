@@ -18,7 +18,7 @@ const BookButton = ({ facility }) => {
     // Automatically recalculate total cost when hours or base facility pricing shifts
     useEffect(() => {
         const rate = facility?.price_per_hour || facility?.pricePerHour || 0;
-        setTotalPrice(Number(hours) * Number(rate));
+        setTotalPrice(Number(hours) * Number(rate)); 
     }, [hours, facility]);
 
     const handleOpenModal = () => setIsOpen(true);
