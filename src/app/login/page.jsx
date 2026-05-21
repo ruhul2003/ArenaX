@@ -1,6 +1,6 @@
 'use client';
 
-import {authClient} from '../../lib/auth-client';
+import { authClient } from '../../lib/auth-client';
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
@@ -26,42 +26,47 @@ const LoginPage = () => {
         });
     };
 
-   // src/app/login/page.jsx (Modify the handleSubmit function)
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-    try {
-        // 1. Trigger sign-in without a rigid callbackURL redirect
-        const { data, error } = await authClient.signIn.email({
-            email: formData.email,
-            password: formData.password,
-            // ❌ Removed callbackURL here to manage navigation safely via Next.js router
-        });
+        try {
+            const { data, error } = await authClient.signIn.email({
+                email: formData.email,
+                password: formData.password,
+            });
 
-        if (error) {
-            throw new Error(error.message || "Invalid email or password");
+            if (error) {
+                throw new Error(error.message || "Invalid email or password");
+            }
+
+            router.refresh(); 
+            router.push('/');
+
+        } catch (err) {
+            console.error("Login client error:", err);
+            setError(err.message || "Invalid email or password");
+        } finally {
+            setLoading(false);
         }
+    };
 
-        // 2. Refresh the router first to update Server Component layouts (like your NavBar)
-        // This ensures the fresh session cookies are immediately available to the backend middleware
-        router.refresh(); 
-
-        // 3. Move the user smoothly to the dashboard or facilities view
-        router.push('/');
-
-    } catch (err) {
-        console.error("Login client error:", err);
-        setError(err.message || "Invalid email or password");
-    } finally {
-        setLoading(false);
-    }
-};
-
-    const handleGoogleSignIn = () => {
-        alert("Google Sign-In coming soon...");
-        // We'll implement this later with Better Auth or Firebase
+    // ✅ Implemented Google Sign-In with Better Auth Client
+    const handleGoogleSignIn = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            await authClient.signIn.social({
+                provider: 'google',
+                callbackURL: '/' // Redirects cleanly to homepage layout after social verification loop
+            });
+        } catch (err) {
+            console.error("Google login error:", err);
+            setError("Google sign-in failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -146,7 +151,8 @@ const handleSubmit = async (e) => {
                     {/* Google Sign In */}
                     <button
                         onClick={handleGoogleSignIn}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black font-medium py-4 rounded-2xl transition-all duration-200"
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all duration-200"
                     >
                         <Image 
                             src="https://www.google.com/favicon.ico" 
@@ -159,7 +165,7 @@ const handleSubmit = async (e) => {
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
-                    Don't have an account?{' '}
+                    Do not have an account?{' '}
                     <a href="/signup" className="text-[#00D4FF] hover:underline font-medium">
                         Sign up
                     </a>

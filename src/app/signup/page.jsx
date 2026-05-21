@@ -33,7 +33,6 @@ const SignupPage = () => {
         setLoading(true);
         setError('');
 
-        // 1. Password validation criteria check
         const password = formData.password;
         const hasMinLength = password.length >= 6;
         const hasUppercase = /[A-Z]/.test(password);
@@ -48,14 +47,12 @@ const SignupPage = () => {
         }
 
         try {
-            // Create the signup payload dynamically
             const signupPayload = {
                 email: formData.email,
                 password: formData.password,
                 name: formData.name,
             };
 
-            // Only add the image property if it's a non-empty string
             if (formData.image && formData.image.trim() !== "") {
                 signupPayload.image = formData.image;
             }
@@ -83,9 +80,10 @@ const SignupPage = () => {
         try {
             await authClient.signIn.social({
                 provider: 'google',
-                callbackURL: '/all-facilities' 
+                callbackURL: '/' // Standardized route redirect target matching your login landing page structure
             });
         } catch (err) {
+            console.error("Google signup exception:", err);
             setError("Google signup failed");
         } finally {
             setLoading(false);
@@ -94,7 +92,8 @@ const SignupPage = () => {
 
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
-            <div className="w-8/12 md:w-5/12 lg:w-6/12">
+            {/* ✅ Standardized container width matching layout rules cleanly */}
+            <div className="max-w-xl w-full">
                 <div className="text-center mb-10">
                     <h1 className="text-4xl font-bold text-white tracking-tight">
                         Arena<span className="text-[#00D4FF]">X</span>

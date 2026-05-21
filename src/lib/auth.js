@@ -1,3 +1,4 @@
+// src/lib/auth.js
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { MongoClient } from "mongodb";
@@ -33,6 +34,21 @@ export const auth = betterAuth({
         minPasswordLength: 6,
     },
 
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        },
+    },
+
     appName: "ArenaX",
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000", 
+    
+    // ✅ Safely links Google accounts if users previously signed up with email/password
+    account: {
+        accountLinking: {
+            enabled: true,
+            trustedProviders: ["google"],
+        }
+    }
 });

@@ -1,10 +1,15 @@
 import React from 'react';
 import { getFacilities } from '../lib/data';
+import { auth } from "@/lib/auth"; // Import your Better-Auth configuration
+import { headers } from "next/headers";
 import Image from 'next/image';
 import { FaStar } from "react-icons/fa";
 
 const Featured = async () => {
+    // 1. Fetch data and check session on the server side
     const facilities = await getFacilities();
+    const session = await auth.api.getSession({ headers: await headers() });
+    const isLoggedIn = !!session?.user;
 
     return (
         <div className="py-16 md:py-24 bg-[#031637]">
@@ -30,62 +35,72 @@ const Featured = async () => {
 
                 {/* Facilities Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                    {facilities.map((facility) => (
-                        <div
-                            key={facility._id || facility.id}   // ← Fixed: Use _id
-                            className="bg-[#031637] rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
-                        >
-                            {/* Image */}
-                            <div className="relative h-56 overflow-hidden">
-                                <Image
-                                    src={facility.image || '/placeholder.jpg'}
-                                    alt={facility.name}
-                                    fill
-                                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                />
-                                <div className="absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-3 py-1 rounded-full">
-                                    {facility.sportType || facility.facility_type || 'Multi-Sport'}
-                                </div>
-                            </div>
+                    {facilities.map((facility) => {
+                        const facilityId = facility._id || facility.id;
+                        const targetFacilityPath = `/facility/${facilityId}`;
+                        
+                        // 2. Dynamic route protection: redirect to login with a callback parameter if unauthenticated
+                        const bookingUrl = isLoggedIn 
+                            ? targetFacilityPath 
+                            : `/login?callbackUrl=${encodeURIComponent(targetFacilityPath)}`;
 
-                            {/* Content */}
-                            <div className="p-6">
-                                <h3 className="text-xl font-semibold text-white line-clamp-2">
-                                    {facility.name}
-                                </h3>
-                                
-                                <p className="text-white/60 text-sm mt-1">
-                                    {facility.location}
-                                </p>
-
-                                {/* Rating & Price */}
-                                <div className="flex justify-between items-center mt-6">
-                                    <div className="flex items-center gap-1">
-                                        <FaStar className="text-[#00D4FF]" />
-                                        <span className="text-white font-medium">
-                                            {facility.booking_count}
-                                        </span>
-                                    </div>
-
-                                    <div>
-                                        <span className="text-[#00D4FF] font-bold text-xl">
-                                            ৳{facility.price_per_hour}
-                                        </span>
-                                        <span className="text-white/50 text-sm">/hr</span>
+                        return (
+                            <div
+                                key={facilityId}
+                                className="bg-[#031637] rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
+                            >
+                                {/* Image */}
+                                <div className="relative h-56 overflow-hidden">
+                                    <Image
+                                        src={facility.image || '/placeholder.jpg'}
+                                        alt={facility.name}
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                    />
+                                    <div className="absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-3 py-1 rounded-full">
+                                        {facility.sportType || facility.facility_type || 'Multi-Sport'}
                                     </div>
                                 </div>
 
-                                {/* Book Button */}
-                                <a 
-                                    href={`/facility/${facility._id || facility.id}`}
-                                    className="mt-6 block w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl text-center transition-all duration-200 hover:scale-[1.02]"
-                                >
-                                    Book Now
-                                </a>
+                                {/* Content */}
+                                <div className="p-6">
+                                    <h3 className="text-xl font-semibold text-white line-clamp-2">
+                                        {facility.name}
+                                    </h3>
+                                    
+                                    <p className="text-white/60 text-sm mt-1">
+                                        {facility.location}
+                                    </p>
+
+                                    {/* Rating & Price */}
+                                    <div className="flex justify-between items-center mt-6">
+                                        <div className="flex items-center gap-1">
+                                            <FaStar className="text-[#00D4FF]" />
+                                            <span className="text-white font-medium">
+                                                {facility.booking_count || 0}
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <span className="text-[#00D4FF] font-bold text-xl">
+                                                ৳{facility.price_per_hour}
+                                            </span>
+                                            <span className="text-white/50 text-sm">/hr</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Book Button */}
+                                    <a 
+                                        href={bookingUrl}
+                                        className="mt-6 block w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl text-center transition-all duration-200 hover:scale-[1.02]"
+                                    >
+                                        Book Now
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

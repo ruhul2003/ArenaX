@@ -106,7 +106,7 @@ const AllFacilities = () => {
                                         <div className="flex items-center gap-1">
                                             <span className="text-[#00D4FF]">★</span>
                                             <span className="text-white font-medium">
-                                                {facility.booking_count || '4.8'}
+                                                {facility.booking_count}
                                             </span>
                                         </div>
 

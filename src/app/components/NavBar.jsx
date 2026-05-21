@@ -1,17 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation'; // ✅ Import usePathname to detect navigation changes
 import { authClient } from '@/lib/auth-client';
 import UserProfileDropdown from './UserProfileDropdown';
 
 const NavBar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const pathname = usePathname(); // ✅ Initialize pathname tracker
     
-    // ✅ Better Auth React Hook to access active sessions
-    const { data: session, isPending } = authClient.useSession();
+    // ✅ Better Auth React Hook to access active sessions (destructured refetch)
+    const { data: session, isPending, refetch } = authClient.useSession();
     const user = session?.user;
+
+    // ✅ Force Better-Auth to refresh its cache state whenever the route path changes or goes back
+    useEffect(() => {
+        refetch();
+    }, [pathname, refetch]);
 
     return (
         <div className="bg-[#031637] sticky top-0 z-50 border-b border-white/10">
@@ -105,6 +112,7 @@ const NavBar = () => {
                                 <Link href="/" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     Home
                                 </Link>
+                            );
                             </li>
                             <li>
                                 <Link href="/all-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
