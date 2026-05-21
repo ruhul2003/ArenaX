@@ -48,7 +48,6 @@ export default function MyBookingsPage() {
             }
 
             alert("Your booking has been cancelled successfully.");
-            // Instantly drop it from the local state list array
             setBookings((prev) => prev.filter((b) => b._id !== bookingId));
         } catch (err) {
             alert(err.message);
@@ -117,7 +116,7 @@ export default function MyBookingsPage() {
                             <Dumbbell size={24} />
                         </div>
                         <h3 className="text-lg font-medium mb-1">No Bookings Found</h3>
-                        <p className="text-white/50 text-sm mb-6">You don't have any facility appointments recorded at this moment.</p>
+                        <p className="text-white/50 text-sm mb-6">You do not have any facility appointments recorded at this moment.</p>
                         <button onClick={() => router.push('/')} className="bg-[#00D4FF] text-[#031637] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#00b2d6] transition">
                             Find an Arena to Book
                         </button>
@@ -155,7 +154,6 @@ export default function MyBookingsPage() {
                                         <span>{booking.total_price}</span>
                                     </div>
 
-                                    {/* Cancel button: displays only if reservation status is 'pending' */}
                                     {booking.status === 'pending' && (
                                         <button
                                             onClick={() => handleCancelBooking(booking._id)}

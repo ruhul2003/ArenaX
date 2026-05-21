@@ -8,7 +8,6 @@ const AllFacilities = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Fetch facilities from backend
     useEffect(() => {
         const fetchFacilities = async () => {
             try {
@@ -25,7 +24,6 @@ const AllFacilities = () => {
         fetchFacilities();
     }, []);
 
-    // Filter facilities based on search
     const filteredFacilities = facilities.filter(facility =>
         facility.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         facility.location?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -77,7 +75,6 @@ const AllFacilities = () => {
                                 key={facility._id || facility.id}
                                 className="bg-[#0A1F3D] rounded-3xl flex flex-col justify-between overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
                             >
-                                {/* Image */}
                                 <div className="relative h-56 overflow-hidden">
                                     <Image
                                         src={facility.image || '/placeholder.jpg'}
@@ -91,7 +88,6 @@ const AllFacilities = () => {
                                     </div>
                                 </div>
 
-                                {/* Content */}
                                 <div className="p-6 flex flex-col flex-1">
                                     <h3 className="text-xl font-semibold text-white line-clamp-2">
                                         {facility.name}
@@ -118,7 +114,6 @@ const AllFacilities = () => {
                                         </div>
                                     </div>
 
-                                    {/* FIXED LINK - Using _id */}
                                     <Link 
                                         href={`/facility/${facility._id?.toString() || facility.id}`}
                                         className="mt-auto pt-6"

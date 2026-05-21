@@ -82,13 +82,11 @@ const Offers = () => {
                                     {offer.description}
                                 </p>
 
-                                {/* Validity */}
                                 <div className="flex items-center gap-2 mt-6 text-sm text-white/60">
                                     <Clock size={18} />
                                     <span>{offer.validity}</span>
                                 </div>
 
-                                {/* CTA Button */}
                                 <button className="mt-8 w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95">
                                     Claim This Offer
                                     <ArrowRight size={20} />
@@ -98,7 +96,6 @@ const Offers = () => {
                     ))}
                 </div>
 
-                {/* Bottom Note */}
                 <p className="text-center text-white/50 text-sm mt-10">
                     *Terms and conditions apply. Offers are subject to availability.
                 </p>

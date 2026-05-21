@@ -41,6 +41,17 @@ const LoginPage = () => {
                 throw new Error(error.message || "Invalid email or password");
             }
 
+            try {
+                await fetch('http://localhost:5000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: formData.email }),
+                    credentials: 'include', 
+                });
+            } catch (syncErr) {
+                console.error("Backend session cookie sync failed:", syncErr);
+            }
+
             router.refresh(); 
             router.push('/');
 
@@ -52,14 +63,13 @@ const LoginPage = () => {
         }
     };
 
-    // ✅ Implemented Google Sign-In with Better Auth Client
     const handleGoogleSignIn = async () => {
         setLoading(true);
         setError('');
         try {
             await authClient.signIn.social({
                 provider: 'google',
-                callbackURL: '/' // Redirects cleanly to homepage layout after social verification loop
+                callbackURL: '/' 
             });
         } catch (err) {
             console.error("Google login error:", err);

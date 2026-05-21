@@ -15,7 +15,6 @@ const BookButton = ({ facility }) => {
     const [hours, setHours] = useState(1);
     const [totalPrice, setTotalPrice] = useState(facility?.price_per_hour || 0);
 
-    // Automatically recalculate total cost when hours or base facility pricing shifts
     useEffect(() => {
         const rate = facility?.price_per_hour || facility?.pricePerHour || 0;
         setTotalPrice(Number(hours) * Number(rate)); 
@@ -68,7 +67,6 @@ const BookButton = ({ facility }) => {
 
     return (
         <>
-            {/* Primary CTA Trigger Button */}
             <button 
                 onClick={handleOpenModal}
                 className="w-full bg-[#00D4FF] hover:bg-[#00E5FF] active:scale-[0.985] text-[#031637] font-semibold py-5 rounded-2xl text-xl transition-all duration-200 shadow-lg shadow-[#00D4FF]/30"
@@ -76,12 +74,10 @@ const BookButton = ({ facility }) => {
                 Book This Facility Now
             </button>
 
-            {/* Modal Box Overlay Backdrop */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
                     <div className="bg-[#041c44] border border-white/10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative text-white">
                         
-                        {/* Header Header Row */}
                         <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/5">
                             <div className="flex items-center gap-2 text-[#00D4FF]">
                                 <Dumbbell size={20} />
@@ -92,9 +88,7 @@ const BookButton = ({ facility }) => {
                             </button>
                         </div>
 
-                        {/* Interactive Input Form */}
                         <form onSubmit={handleConfirmBooking} className="p-6 space-y-4">
-                            {/* Read-Only: Facility Name */}
                             <div>
                                 <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1">Facility Name</label>
                                 <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-semibold text-white/90">
@@ -102,7 +96,6 @@ const BookButton = ({ facility }) => {
                                 </div>
                             </div>
 
-                            {/* Booking Date Selection */}
                             <div>
                                 <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1">Booking Date</label>
                                 <div className="relative">
@@ -118,7 +111,6 @@ const BookButton = ({ facility }) => {
                                 </div>
                             </div>
 
-                            {/* Time Slot Input Selection */}
                             <div>
                                 <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1">Preferred Time Slot</label>
                                 <div className="relative">
@@ -141,7 +133,6 @@ const BookButton = ({ facility }) => {
                                 </div>
                             </div>
 
-                            {/* Hours Multiplier Input Count */}
                             <div>
                                 <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1">Duration (Hours)</label>
                                 <input 
@@ -155,7 +146,6 @@ const BookButton = ({ facility }) => {
                                 />
                             </div>
 
-                            {/* Output Block: Live Total Price Calculation */}
                             <div className="bg-[#00D4FF]/5 border border-[#00D4FF]/20 rounded-xl p-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-medium text-white/50 uppercase tracking-wider">Total Est. Price</p>
@@ -167,7 +157,6 @@ const BookButton = ({ facility }) => {
                                 </div>
                             </div>
 
-                            {/* Action Buttons Row */}
                             <div className="flex items-center gap-3 pt-2">
                                 <button 
                                     type="button" 

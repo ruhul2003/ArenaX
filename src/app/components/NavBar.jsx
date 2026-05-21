@@ -3,22 +3,41 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; // ✅ Import usePathname to detect navigation changes
+import { usePathname } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import UserProfileDropdown from './UserProfileDropdown';
 
 const NavBar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const pathname = usePathname(); // ✅ Initialize pathname tracker
+    const pathname = usePathname();
     
-    // ✅ Better Auth React Hook to access active sessions (destructured refetch)
     const { data: session, isPending, refetch } = authClient.useSession();
     const user = session?.user;
 
-    // ✅ Force Better-Auth to refresh its cache state whenever the route path changes or goes back
     useEffect(() => {
         refetch();
     }, [pathname, refetch]);
+
+    useEffect(() => {
+        const syncCookieSession = async () => {
+            if (user?.email) {
+                try {
+                    await fetch('http://localhost:5000/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email }),
+                        credentials: 'include', 
+                    });
+                } catch (err) {
+                    console.error("Automatic navbar session sync failed:", err);
+                }
+            }
+        };
+        
+        if (!isPending) {
+            syncCookieSession();
+        }
+    }, [user, isPending]);
 
     return (
         <div className="bg-[#031637] sticky top-0 z-50 border-b border-white/10">
@@ -45,7 +64,6 @@ const NavBar = () => {
                             </Link>
                         </li>
                         
-                        {/* ✅ Conditional Client Rendering */}
                         {!isPending && user && (
                             <>
                                 <li>
@@ -67,7 +85,6 @@ const NavBar = () => {
                         )}
                     </ul>
 
-                    {/* Desktop Action Block */}
                     <div className="hidden md:flex items-center gap-4">
                         {isPending ? (
                             <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />
@@ -91,7 +108,6 @@ const NavBar = () => {
                         )}
                     </div>
 
-                    {/* Mobile Menu Trigger aligned to the right side */}
                     <div className="md:hidden flex items-center gap-4">
                         {!isPending && user && <UserProfileDropdown user={user} />}
                         <button
@@ -112,7 +128,6 @@ const NavBar = () => {
                                 <Link href="/" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     Home
                                 </Link>
-                            );
                             </li>
                             <li>
                                 <Link href="/all-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>

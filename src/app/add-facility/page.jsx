@@ -28,16 +28,14 @@ const AddFacilityPage = () => {
         price_per_hour: '',
         description: '',
         rules: '',
-        booking_count: '0', // ✅ Added booking_count field
+        booking_count: '0', 
     });
 
-    // Default operational timings layout
     const [timings, setTimings] = useState({
         openTime: '08:00',
         closeTime: '22:00',
     });
 
-    // Handle generic text inputs
     const handleChange = (e) => {
         setError('');
         setFormData({
@@ -61,7 +59,7 @@ const AddFacilityPage = () => {
                 description: formData.description,
                 image: formData.image.trim(),                                          
                 available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
-                booking_count: parseInt(formData.booking_count, 10) || 0 // ✅ Sends the user-defined booking count
+                booking_count: parseInt(formData.booking_count, 10) || 0 
             };
 
             const response = await fetch('/api/facilities', {
@@ -109,7 +107,6 @@ const AddFacilityPage = () => {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-8">
 
-                            {/* Section 1: Core Details */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
                                     <Activity size={18} /> Basic Information
@@ -145,7 +142,6 @@ const AddFacilityPage = () => {
                                 </div>
                             </div>
 
-                            {/* Section 2: Logistics, Capacity, Pricing & Booking Count */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
                                     <MapPin size={18} /> Logistics, Capacity & Pricing
@@ -194,7 +190,6 @@ const AddFacilityPage = () => {
                                         />
                                     </div>
 
-                                    {/* ✅ REPLACE SECTION: Booking Count field instead of Ratings */}
                                     <div>
                                         <label className="block text-white/80 text-sm font-medium mb-2">Initial Bookings</label>
                                         <div className="relative">
@@ -213,7 +208,6 @@ const AddFacilityPage = () => {
                                 </div>
                             </div>
 
-                            {/* Section 3: Availability Timings */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
                                     <Clock size={18} /> Operational Hours
@@ -242,7 +236,6 @@ const AddFacilityPage = () => {
                                 </div>
                             </div>
 
-                            {/* Section 4: Photo Management */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-3 flex items-center gap-2">
                                     <Upload size={18} /> Facility Display Image URL
@@ -262,7 +255,6 @@ const AddFacilityPage = () => {
                                 </div>
                             </div>
 
-                            {/* Section 5: Long-form Meta Descriptions */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
                                     <FileText size={18} /> Descriptions & Protocols
@@ -303,7 +295,6 @@ const AddFacilityPage = () => {
                                 </p>
                             )}
 
-                            {/* Action Form Footer Buttons */}
                             <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-white/10">
                                 <button
                                     type="button"

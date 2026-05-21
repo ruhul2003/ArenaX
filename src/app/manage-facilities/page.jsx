@@ -11,7 +11,6 @@ const ManageMyFacilities = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ✅ Fetches only the current user's documents
     const fetchFacilities = async () => {
         try {
             setIsLoading(true);
@@ -34,7 +33,6 @@ const ManageMyFacilities = () => {
         }
     };
 
-    // ✅ Fixed Delete Handler: Communicates directly via query parameters
     const handleDelete = async (facilityId) => {
         if (!window.confirm("Are you absolutely sure you want to delete this facility? This action cannot be undone.")) {
             return;
@@ -51,7 +49,6 @@ const ManageMyFacilities = () => {
                 throw new Error(data.error || "Failed to delete the facility.");
             }
 
-            // Remove from local UI state instantly upon database confirmation
             setFacilities((prevFacilities) => 
                 prevFacilities.filter((facility) => (facility._id || facility.id) !== facilityId)
             );
@@ -129,7 +126,6 @@ const ManageMyFacilities = () => {
                                     key={facilityId}
                                     className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition group flex flex-col justify-between"
                                 >
-                                    {/* Facility Card Thumbnail */}
                                     <div className="relative h-48 w-full bg-white/10">
                                         {facility.image || facility.imageUrl ? (
                                             <Image
@@ -147,7 +143,6 @@ const ManageMyFacilities = () => {
                                         )}
                                     </div>
 
-                                    {/* Content Details */}
                                     <div className="p-5 flex-1 flex flex-col justify-between">
                                         <div>
                                             <h3 className="text-xl font-bold tracking-tight text-white line-clamp-1">{facility.name}</h3>
@@ -160,7 +155,6 @@ const ManageMyFacilities = () => {
                                             </p>
                                         </div>
 
-                                        {/* Actions Row */}
                                         <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
                                             <span className="text-[#00D4FF] font-bold text-lg">
                                                 ${facility.price_per_hour || facility.pricePerHour || 0}
@@ -168,7 +162,6 @@ const ManageMyFacilities = () => {
                                             </span>
 
                                             <div className="flex items-center gap-2">
-                                                {/* ✅ FIXED ROUTE DIRECTION TO EDIT PAGE */}
                                                 <button
                                                     onClick={() => router.push(`/manage-facilities/edit/${facilityId}`)}
                                                     className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/80 hover:text-white transition"

@@ -5,7 +5,6 @@ import { ArrowLeft, Star, MapPin, Clock, Users } from 'lucide-react';
 import BookButton from '../BookButton';
 
 const FacilityDetails = async ({ params }) => {
-    // ✅ Important: Await params in Next.js 15+
     const { id } = await params;
 
     console.log("✅ ID from URL:", id);

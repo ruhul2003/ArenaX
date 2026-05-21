@@ -1,4 +1,3 @@
-// src/lib/auth.js
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { MongoClient } from "mongodb";
@@ -11,7 +10,6 @@ let client;
 if (process.env.NODE_ENV === "production") {
     client = new MongoClient(process.env.MONGODB_URI);
 } else {
-    // Re-use connection pool across dev hot-reloads
     if (!global._mongoClient) {
         global._mongoClient = new MongoClient(process.env.MONGODB_URI);
     }
@@ -44,7 +42,6 @@ export const auth = betterAuth({
     appName: "ArenaX",
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000", 
     
-    // ✅ Safely links Google accounts if users previously signed up with email/password
     account: {
         accountLinking: {
             enabled: true,

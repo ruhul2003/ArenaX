@@ -5,7 +5,6 @@ import { MongoClient, ObjectId } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI);
 
-// ✅ 1. GET: Fetch data for a single facility to populate the edit form
 export async function GET(req, { params }) {
     try {
         const session = await auth.api.getSession({ headers: req.headers });
@@ -18,7 +17,6 @@ export async function GET(req, { params }) {
         const db = client.db("ArenaX");
         const collection = db.collection("Facilities");
 
-        // Find the facility, verifying that the current user owns it
         const facility = await collection.findOne({
             _id: new ObjectId(id),
             owner_email: session.user.email
@@ -35,7 +33,6 @@ export async function GET(req, { params }) {
     }
 }
 
-// ✅ 2. PUT: Save updates submitted from your edit form
 export async function PUT(req, { params }) {
     try {
         const session = await auth.api.getSession({ headers: req.headers });
@@ -50,7 +47,6 @@ export async function PUT(req, { params }) {
         const db = client.db("ArenaX");
         const collection = db.collection("Facilities");
 
-        // Prepare updated data, explicitly casting numeric values
         const updatedData = {
             name: body.name,
             facility_type: body.facility_type,
@@ -78,7 +74,6 @@ export async function PUT(req, { params }) {
     }
 }
 
-// ✅ 3. DELETE: Your functional deletion logic
 export async function DELETE(req, { params }) {
     try {
         const session = await auth.api.getSession({ headers: req.headers });

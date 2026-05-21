@@ -4,7 +4,6 @@ import { MongoClient, ObjectId } from "mongodb";
 
 const client = new MongoClient(process.env.MONGODB_URI);
 
-// GET: Fetch all bookings for logged-in user
 export async function GET(req) {
     try {
         const session = await auth.api.getSession({ headers: req.headers });
@@ -28,7 +27,6 @@ export async function GET(req) {
     }
 }
 
-// DELETE: Cancel a specific pending booking
 export async function DELETE(req) {
     try {
         const session = await auth.api.getSession({ headers: req.headers });
@@ -36,7 +34,6 @@ export async function DELETE(req) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Parse booking ID from URL parameters (?id=...)
         const { searchParams } = new URL(req.url);
         const bookingId = searchParams.get("id");
 
@@ -48,7 +45,6 @@ export async function DELETE(req) {
         const db = client.db("ArenaX");
         const collection = db.collection("Bookings");
 
-        // Find the booking to make sure it belongs to this user and is still "pending"
         const booking = await collection.findOne({ _id: new ObjectId(bookingId) });
         
         if (!booking) {
@@ -61,7 +57,6 @@ export async function DELETE(req) {
             return NextResponse.json({ error: "Only pending bookings can be cancelled" }, { status: 400 });
         }
 
-        // Delete the booking record from the collection
         await collection.deleteOne({ _id: new ObjectId(bookingId) });
 
         return NextResponse.json({ success: true, message: "Booking cancelled successfully" });

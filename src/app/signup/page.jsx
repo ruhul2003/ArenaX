@@ -80,7 +80,7 @@ const SignupPage = () => {
         try {
             await authClient.signIn.social({
                 provider: 'google',
-                callbackURL: '/' // Standardized route redirect target matching your login landing page structure
+                callbackURL: '/' 
             });
         } catch (err) {
             console.error("Google signup exception:", err);
@@ -92,7 +92,6 @@ const SignupPage = () => {
 
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
-            {/* ✅ Standardized container width matching layout rules cleanly */}
             <div className="max-w-xl w-full">
                 <div className="text-center mb-10">
                     <h1 className="text-4xl font-bold text-white tracking-tight">

@@ -12,7 +12,6 @@ const UserProfileDropdown = ({ user }) => {
     const dropdownRef = useRef(null);
     const router = useRouter();
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -38,12 +37,10 @@ const UserProfileDropdown = ({ user }) => {
         }
     };
 
-    // Fallback initials if user image isn't available
     const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
 
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* Trigger Trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/5 transition-all duration-200 focus:outline-none border border-transparent hover:border-white/10"
@@ -71,14 +68,12 @@ const UserProfileDropdown = ({ user }) => {
             {/* Dropdown Menu */}
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-[#0A1F3D] border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-3 duration-200">
-                    {/* User Info Header */}
                     <div className="px-4 py-3 border-b border-white/10 mb-1">
                         <p className="text-xs text-white/40 font-medium tracking-wider uppercase">Signed in as</p>
                         <p className="text-sm font-semibold text-white truncate mt-0.5">{user?.name || 'User'}</p>
                         <p className="text-xs text-white/60 truncate">{user?.email}</p>
                     </div>
 
-                    {/* Navigation Items */}
                     <div className="px-1.5 space-y-0.5">
                         <Link
                             href="/my-bookings"

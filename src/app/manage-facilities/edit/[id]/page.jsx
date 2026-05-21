@@ -1,11 +1,9 @@
-// src/app/manage-facilities/edit/[id]/page.jsx
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function EditFacilityPage({ params }) {
-    // ✅ Safely unwrap the dynamic route parameters in Client Components
     const resolvedParams = use(params);
     const id = resolvedParams.id;
     
@@ -24,7 +22,6 @@ export default function EditFacilityPage({ params }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
 
-    // ✅ Fetch the existing record values from your API when the page mounts
     useEffect(() => {
         const fetchDetails = async () => {
             try {
@@ -61,7 +58,6 @@ export default function EditFacilityPage({ params }) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // ✅ Submit the edited payload via PUT to our dynamic route
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSaving(true);
@@ -79,7 +75,7 @@ export default function EditFacilityPage({ params }) {
 
             alert("Facility updated successfully!");
             router.push('/manage-facilities');
-            router.refresh(); // Forces a layout refresh to update dashboard items instantly
+            router.refresh(); 
         } catch (err) {
             alert(err.message);
         } finally {

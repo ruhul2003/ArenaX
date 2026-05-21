@@ -1,12 +1,11 @@
 import React from 'react';
 import { getFacilities } from '../lib/data';
-import { auth } from "@/lib/auth"; // Import your Better-Auth configuration
+import { auth } from "@/lib/auth"; 
 import { headers } from "next/headers";
 import Image from 'next/image';
 import { FaStar } from "react-icons/fa";
 
 const Featured = async () => {
-    // 1. Fetch data and check session on the server side
     const facilities = await getFacilities();
     const session = await auth.api.getSession({ headers: await headers() });
     const isLoggedIn = !!session?.user;
@@ -14,7 +13,6 @@ const Featured = async () => {
     return (
         <div className="py-16 md:py-24 bg-[#031637]">
             <div className="max-w-7xl mx-auto px-6">
-                {/* Section Header */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10">
                     <div>
                         <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
@@ -33,13 +31,11 @@ const Featured = async () => {
                     </a>
                 </div>
 
-                {/* Facilities Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                     {facilities.map((facility) => {
                         const facilityId = facility._id || facility.id;
                         const targetFacilityPath = `/facility/${facilityId}`;
                         
-                        // 2. Dynamic route protection: redirect to login with a callback parameter if unauthenticated
                         const bookingUrl = isLoggedIn 
                             ? targetFacilityPath 
                             : `/login?callbackUrl=${encodeURIComponent(targetFacilityPath)}`;
@@ -49,7 +45,6 @@ const Featured = async () => {
                                 key={facilityId}
                                 className="bg-[#031637] rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
                             >
-                                {/* Image */}
                                 <div className="relative h-56 overflow-hidden">
                                     <Image
                                         src={facility.image || '/placeholder.jpg'}
@@ -90,7 +85,6 @@ const Featured = async () => {
                                         </div>
                                     </div>
 
-                                    {/* Book Button */}
                                     <a 
                                         href={bookingUrl}
                                         className="mt-6 block w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl text-center transition-all duration-200 hover:scale-[1.02]"
