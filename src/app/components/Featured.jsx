@@ -64,7 +64,7 @@ const Featured = async () => {
                                     <div className="flex items-center gap-1">
                                         <FaStar className="text-[#00D4FF]" />
                                         <span className="text-white font-medium">
-                                            {facility.rating || '4.8'}
+                                            {facility.booking_count}
                                         </span>
                                     </div>
 

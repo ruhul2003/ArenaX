@@ -13,24 +13,6 @@ const NavBar = () => {
     const { data: session, isPending } = authClient.useSession();
     const user = session?.user;
 
-    // ✅ FIX: Base public links that are always visible
-    const baseLinks = [
-        { name: 'Home', href: '/' },
-        { name: 'All Facilities', href: '/all-facilities' },
-    ];
-
-    // ✅ FIX: Authenticated-only links added safely only if user strictly exists
-    const privateLinks = user 
-        ? [
-            { name: 'My Bookings', href: '/my-bookings' }, 
-            { name: 'Add Facility', href: '/add-facility' }, 
-            { name: 'Manage My Facilities', href: '/manage-facilities' } 
-          ]
-        : [];
-
-    // Combine them safely without inline array spreading errors
-    const navLinks = [...baseLinks, ...privateLinks];
-
     return (
         <div className="bg-[#031637] sticky top-0 z-50 border-b border-white/10">
             <nav className="max-w-7xl mx-auto px-5 md:px-6 py-3 md:py-4">
@@ -44,24 +26,43 @@ const NavBar = () => {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <ul className="hidden md:flex items-center gap-6 lg:gap-8 text-sm md:text-base text-white/90">
-                        {navLinks.map((link) => (
-                            <li key={link.name}>
-                                <Link
-                                    href={link.href}
-                                    className="hover:text-white transition-colors duration-200 font-medium relative group"
-                                >
-                                    {link.name}
-                                    <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#00D4FF] group-hover:w-full transition-all duration-300"></span>
-                                </Link>
-                            </li>
-                        ))}
+                    <ul className="hidden md:flex items-center gap-6 lg:gap-8 text-white/90">
+                        <li>
+                            <Link href="/" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
+                                Home
+                            </Link>
+                        </li>
+                        <li>
+                            <Link href="/all-facilities" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
+                                All Facilities
+                            </Link>
+                        </li>
+                        
+                        {/* ✅ Conditional Client Rendering */}
+                        {!isPending && user && (
+                            <>
+                                <li>
+                                    <Link href="/my-bookings" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        My Bookings
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/add-facility" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        Add Facility
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/manage-facilities" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        Manage My Facilities
+                                    </Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
 
                     {/* Desktop Action Block */}
                     <div className="hidden md:flex items-center gap-4">
                         {isPending ? (
-                            // Loading state placeholder skeleton
                             <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />
                         ) : user ? (
                             <UserProfileDropdown user={user} />
@@ -100,17 +101,35 @@ const NavBar = () => {
                 {isMobileMenuOpen && (
                     <div className="md:hidden mt-4 pt-4 border-t border-white/10">
                         <ul className="flex flex-col gap-4 text-white/90 text-base">
-                            {navLinks.map((link) => (
-                                <li key={link.name}>
-                                    <Link
-                                        href={link.href}
-                                        className="block py-2 hover:text-white transition-colors font-medium"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                        {link.name}
-                                    </Link>
-                                </li>
-                            ))}
+                            <li>
+                                <Link href="/" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Home
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/all-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                    All Facilities
+                                </Link>
+                            </li>
+                            {!isPending && user && (
+                                <>
+                                    <li>
+                                        <Link href="/my-bookings" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            My Bookings
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/add-facility" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            Add Facility
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/manage-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            Manage My Facilities
+                                        </Link>
+                                    </li>
+                                </>
+                            )}
                         </ul>
 
                         {!isPending && !user && (

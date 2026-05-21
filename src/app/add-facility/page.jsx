@@ -3,15 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    Plus,
     Upload,
-    DollarSign,
     MapPin,
     Activity,
     Clock,
     FileText,
-    X,
-    CheckCircle
+    CheckCircle,
+    Hash
 } from 'lucide-react';
 
 const AddFacilityPage = () => {
@@ -23,15 +21,15 @@ const AddFacilityPage = () => {
     // Form states
     const [formData, setFormData] = useState({
         name: '',
+        facility_type: 'Cricket Ground',
         location: '',
-        pricePerHour: '',
+        capacity: '',
+        image: '',
+        price_per_hour: '',
         description: '',
-        category: 'Sports',
         rules: '',
+        booking_count: '0', // ✅ Added booking_count field
     });
-
-    const [images, setImages] = useState([]);
-    const [imageUrlInput, setImageUrlInput] = useState('');
 
     // Default operational timings layout
     const [timings, setTimings] = useState({
@@ -48,69 +46,38 @@ const AddFacilityPage = () => {
         });
     };
 
-    // Add image URL to the localized list
-    const handleAddImageUrl = (e) => {
-        e.preventDefault();
-        if (!imageUrlInput.trim()) return;
-
-        // Simple URL validation rule
-        if (!imageUrlInput.startsWith('http://') && !imageUrlInput.startsWith('https://')) {
-            setError('Please enter a valid image URL starting with http:// or https://');
-            return;
-        }
-
-        setImages([...images, imageUrlInput.trim()]);
-        setImageUrlInput('');
-        setError('');
-    };
-
-    // Remove image URL from list
-    const removeImage = (indexToRemove) => {
-        setImages(images.filter((_, idx) => idx !== indexToRemove));
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
-        if (images.length === 0) {
-            setError('Please add at least one facility image URL.');
-            setLoading(false);
-            return;
-        }
-
         try {
             const payload = {
-                ...formData,
-                pricePerHour: parseFloat(formData.pricePerHour),
-                images: images,
-                timings: timings,
+                name: formData.name,
+                facility_type: formData.facility_type,
+                location: formData.location,
+                price_per_hour: parseInt(formData.price_per_hour, 10), 
+                capacity: parseInt(formData.capacity, 10),
+                description: formData.description,
+                image: formData.image.trim(),                                          
+                available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
+                booking_count: parseInt(formData.booking_count, 10) || 0 // ✅ Sends the user-defined booking count
             };
 
-            // Hit our custom backend API route
             const response = await fetch('/api/facilities', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create facility');
-            }
+            if (!response.ok) throw new Error(data.error || 'Failed to create facility');
 
             setSuccess(true);
-            setTimeout(() => {
-                router.push('/all-facilities');
-            }, 2000);
+            setTimeout(() => router.push('/all-facilities'), 2000);
 
         } catch (err) {
-            console.error('Facility Submission Error:', err);
-            setError(err.message || 'Something went wrong while listing this facility.');
+            setError(err.message || 'Something went wrong.');
         } finally {
             setLoading(false);
         }
@@ -162,30 +129,29 @@ const AddFacilityPage = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-white/80 text-sm font-medium mb-2">Category</label>
+                                        <label className="block text-white/80 text-sm font-medium mb-2">Facility Type</label>
                                         <select
-                                            name="category"
-                                            value={formData.category}
+                                            name="facility_type"
+                                            value={formData.facility_type}
                                             onChange={handleChange}
-                                            className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white focus:outline-none focus:border-[#00D4FF] transition appearance-none"
+                                            className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white focus:outline-none focus:border-[#00D4FF] transition"
                                         >
-                                            <option value="Sports">Sports Turf / Court</option>
-                                            <option value="Gym">Gymnasium & Fitness</option>
-                                            <option value="Swimming">Swimming Pool</option>
-                                            <option value="Auditorium">Auditorium / Hall</option>
-                                            <option value="Other">Other Recreational Space</option>
+                                            <option value="Cricket Ground">Cricket Ground</option>
+                                            <option value="Badminton">Badminton Court</option>
+                                            <option value="Football Turf">Football Turf</option>
+                                            <option value="Multi-Sport">Multi-Sport</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Section 2: Pricing & Location Details */}
+                            {/* Section 2: Logistics, Capacity, Pricing & Booking Count */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
-                                    <MapPin size={18} /> Logistics & Pricing
+                                    <MapPin size={18} /> Logistics, Capacity & Pricing
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="lg:col-span-1">
                                         <label className="block text-white/80 text-sm font-medium mb-2">Location Address</label>
                                         <div className="relative">
                                             <input
@@ -193,7 +159,7 @@ const AddFacilityPage = () => {
                                                 name="location"
                                                 value={formData.location}
                                                 onChange={handleChange}
-                                                placeholder="e.g., Sector 12, Uttara, Dhaka"
+                                                placeholder="e.g., Uttara, Dhaka"
                                                 className="w-full pl-12 pr-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
                                                 required
                                             />
@@ -202,19 +168,46 @@ const AddFacilityPage = () => {
                                     </div>
 
                                     <div>
+                                        <label className="block text-white/80 text-sm font-medium mb-2">Capacity (Players)</label>
+                                        <input
+                                            type="number"
+                                            name="capacity"
+                                            value={formData.capacity}
+                                            onChange={handleChange}
+                                            placeholder="e.g., 22"
+                                            className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
                                         <label className="block text-white/80 text-sm font-medium mb-2">Price Per Hour (BDT)</label>
+                                        <input
+                                            type="number"
+                                            name="price_per_hour"
+                                            value={formData.price_per_hour}
+                                            onChange={handleChange}
+                                            placeholder="e.g., 1500"
+                                            className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
+                                            required
+                                            min="1"
+                                        />
+                                    </div>
+
+                                    {/* ✅ REPLACE SECTION: Booking Count field instead of Ratings */}
+                                    <div>
+                                        <label className="block text-white/80 text-sm font-medium mb-2">Initial Bookings</label>
                                         <div className="relative">
                                             <input
                                                 type="number"
-                                                name="pricePerHour"
-                                                value={formData.pricePerHour}
+                                                name="booking_count"
+                                                value={formData.booking_count}
                                                 onChange={handleChange}
-                                                placeholder="e.g., 1500"
+                                                placeholder="0"
                                                 className="w-full pl-12 pr-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
-                                                required
-                                                min="1"
+                                                min="0"
                                             />
-                                            <DollarSign size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
+                                            <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
                                         </div>
                                     </div>
                                 </div>
@@ -249,47 +242,24 @@ const AddFacilityPage = () => {
                                 </div>
                             </div>
 
-                            {/* Section 4: Photo Gallery Management */}
+                            {/* Section 4: Photo Management */}
                             <div>
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-3 flex items-center gap-2">
-                                    <Upload size={18} /> Image Gallery URLs
+                                    <Upload size={18} /> Facility Display Image URL
                                 </h3>
-                                <p className="text-xs text-white/50 mb-3">Provide hosted URLs for photos displaying court layouts or amenities.</p>
+                                <p className="text-xs text-white/50 mb-3">Provide a hosted image link showing your arena or court turf layout.</p>
 
                                 <div className="flex gap-3">
                                     <input
                                         type="url"
-                                        value={imageUrlInput}
-                                        onChange={(e) => setImageUrlInput(e.target.value)}
+                                        name="image"
+                                        value={formData.image}
+                                        required
+                                        onChange={handleChange}
                                         placeholder="https://images.unsplash.com/your-photo-path.jpg"
-                                        className="flex-1 px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
+                                        className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddImageUrl}
-                                        className="px-6 bg-white hover:bg-gray-100 text-[#031637] font-semibold rounded-2xl transition flex items-center gap-2 shrink-0"
-                                    >
-                                        <Plus size={18} /> Add URL
-                                    </button>
                                 </div>
-
-                                {/* Active Image URLs Map Stacks */}
-                                {images.length > 0 && (
-                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {images.map((url, idx) => (
-                                            <div key={idx} className="flex items-center justify-between gap-2 bg-[#031637] px-4 py-3 rounded-xl border border-white/10 text-xs text-white/70">
-                                                <span className="truncate flex-1">{url}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeImage(idx)}
-                                                    className="text-red-400 hover:text-red-500 transition p-1 rounded-md hover:bg-red-500/10 shrink-0"
-                                                >
-                                                    <X size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
 
                             {/* Section 5: Long-form Meta Descriptions */}
