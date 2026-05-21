@@ -162,16 +162,15 @@ const ManageMyFacilities = () => {
 
                                         {/* Actions Row */}
                                         <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-                                            {/* ✅ Fixed Property: Matches database price_per_hour directly */}
                                             <span className="text-[#00D4FF] font-bold text-lg">
                                                 ${facility.price_per_hour || facility.pricePerHour || 0}
                                                 <span className="text-xs text-white/50 font-normal">/hr</span>
                                             </span>
 
                                             <div className="flex items-center gap-2">
-                                                {/* ✅ Fixed Redirect: Matches dynamic file path layout /facility/[id] */}
+                                                {/* ✅ FIXED ROUTE DIRECTION TO EDIT PAGE */}
                                                 <button
-                                                    onClick={() => router.push(`/facility/${facilityId}`)}
+                                                    onClick={() => router.push(`/manage-facilities/edit/${facilityId}`)}
                                                     className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/80 hover:text-white transition"
                                                     title="Edit Facility"
                                                 >
