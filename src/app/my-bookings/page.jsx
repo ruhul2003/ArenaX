@@ -9,7 +9,7 @@ export default function MyBookingsPage() {
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-
+ 
     const fetchMyBookings = async () => {
         try {
             setIsLoading(true);
