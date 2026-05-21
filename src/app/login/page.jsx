@@ -42,7 +42,8 @@ const LoginPage = () => {
             }
 
             try {
-                await fetch(`process.env.NEXT_PUBLIC_SERVER_URL/auth/login`, {
+                // 💡 FIX: Wrapped the environment variable correctly in ${} syntax
+                await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: formData.email }),
@@ -52,8 +53,9 @@ const LoginPage = () => {
                 console.error("Backend session cookie sync failed:", syncErr);
             }
 
-            router.refresh(); 
+            // 💡 FIX: Move to target route first, then refresh data structures cleanly
             router.push('/');
+            router.refresh(); 
 
         } catch (err) {
             console.error("Login client error:", err);

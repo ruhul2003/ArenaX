@@ -1,7 +1,5 @@
-import { auth } from "@/lib/auth"; 
+import { auth } from "@/lib/auth"; // Double check this matches your actual auth file path
 import { toNextJsHandler } from "better-auth/next-js";
 
-const handler = toNextJsHandler(auth);
-
-export const GET = handler;
-export const POST = handler;
+// Option A: If using the default built-in object mapping
+export const { GET, POST } = toNextJsHandler(auth);

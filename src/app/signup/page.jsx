@@ -63,8 +63,23 @@ const SignupPage = () => {
                 throw new Error(authError.message || "Registration failed");
             }
 
+            // 💡 FIX: Sync the session data with your server cookie handler immediately upon registration
+            try {
+                await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: formData.email }),
+                    credentials: 'include', 
+                });
+            } catch (syncErr) {
+                console.error("Backend signup cookie sync failed:", syncErr);
+            }
+
             alert("✅ Account created successfully!");
-            router.push('/login');
+            
+            // Go home safely with functional synced states
+            router.push('/');
+            router.refresh();
             
         } catch (err) {
             console.error("Signup Client Error:", err);
