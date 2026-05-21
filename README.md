@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+ArenaX
+A web application for sports enthusiasts to discover and book sports venues.
 
-## Getting Started
+🚀 Purpose
+ArenaX makes it easy to find and book local sports spaces like football pitches, cricket nets, or badminton courts by connecting venue owners with players in real time.
 
-First, run the development server:
+🌐 Live URL
+👉 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+✨ Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Smart Search: Instantly look up venues by their name or location.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Sport Filters: Easily sort through venues by specific categories like Football, Cricket, or Basketball.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Easy Booking: See hourly pricing, track popular venues, and view clear booking information.
 
-## Learn More
+Secure Login: Clean and safe user authentication integrated with Google Sign-In.
 
-To learn more about Next.js, take a look at the following resources:
+Mobile Friendly: A fully responsive dark-themed interface built to look perfect on both desktops and mobile devices.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📦 NPM Packages Used
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Frontend (Next.js) :
 
-## Deploy on Vercel
+next – Production React framework.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+react & react-dom – Core user interface library.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+tailwindcss – CSS framework used for layout and styling.
+
+Backend (Node.js & Express) :
+
+express – Minimalist web framework for building the API endpoints.
+
+mongodb – Database driver used to handle complex searching and filtering.
+
+cors – Tool to securely allow communication between frontend and backend.
+
+dotenv – Safe management of database passwords and environment variables.
