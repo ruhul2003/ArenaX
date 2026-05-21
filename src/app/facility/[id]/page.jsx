@@ -13,7 +13,7 @@ const FacilityDetails = async ({ params }) => {
     let error = null;
 
     try {
-        const res = await fetch('http://localhost:5000/facilities', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/facilities`, {
             cache: 'no-store',
             next: { revalidate: 0 },
         });

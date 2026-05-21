@@ -22,7 +22,7 @@ const NavBar = () => {
         const syncCookieSession = async () => {
             if (user?.email) {
                 try {
-                    await fetch('http://localhost:5000/auth/login', {
+                    await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: user.email }),
