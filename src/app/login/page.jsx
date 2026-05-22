@@ -3,7 +3,6 @@
 import { authClient } from '../../lib/auth-client';
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
@@ -20,10 +19,7 @@ const LoginPage = () => {
 
     const handleChange = (e) => {
         setError('');
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
@@ -32,34 +28,31 @@ const LoginPage = () => {
         setError('');
 
         try {
-            const { data, error } = await authClient.signIn.email({
+            // 1. Better Auth Login
+            const { error: authError } = await authClient.signIn.email({
                 email: formData.email,
                 password: formData.password,
             });
 
-            if (error) {
-                throw new Error(error.message || "Invalid email or password");
-            }
+            if (authError) throw new Error(authError.message || "Invalid credentials");
 
-            try {
-                // 💡 FIX: Wrapped the environment variable correctly in ${} syntax
-                await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: formData.email }),
-                    credentials: 'include', 
-                });
-            } catch (syncErr) {
-                console.error("Backend session cookie sync failed:", syncErr);
-            }
+            // 2. Set backend cookie
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            
+            await fetch(`${serverUrl}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.email }),
+                credentials: 'include',
+            });
 
-            // 💡 FIX: Move to target route first, then refresh data structures cleanly
-            router.push('/');
-            router.refresh(); 
+            // 3. Redirect
+            router.push('/all-facilities');
+            router.refresh();
 
         } catch (err) {
-            console.error("Login client error:", err);
-            setError(err.message || "Invalid email or password");
+            console.error("Login error:", err);
+            setError(err.message || "Login failed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -67,15 +60,13 @@ const LoginPage = () => {
 
     const handleGoogleSignIn = async () => {
         setLoading(true);
-        setError('');
         try {
             await authClient.signIn.social({
                 provider: 'google',
-                callbackURL: '/' 
+                callbackURL: '/all-facilities'
             });
         } catch (err) {
-            console.error("Google login error:", err);
-            setError("Google sign-in failed. Please try again.");
+            setError("Google sign-in failed.");
         } finally {
             setLoading(false);
         }
@@ -84,7 +75,6 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
             <div className="max-w-md w-full">
-                {/* Logo & Title */}
                 <div className="text-center mb-10">
                     <h1 className="text-4xl font-bold text-white tracking-tight">
                         Arena<span className="text-[#00D4FF]">X</span>
@@ -92,30 +82,23 @@ const LoginPage = () => {
                     <p className="text-white/70 mt-2 text-lg">Welcome back</p>
                 </div>
 
-                {/* Login Card */}
                 <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Email */}
                         <div>
-                            <label className="block text-white/80 text-sm font-medium mb-2">
-                                Email Address
-                            </label>
+                            <label className="block text-white/80 text-sm font-medium mb-2">Email Address</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="you@example.com"
-                                className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF] transition"
+                                className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF]"
                                 required
                             />
                         </div>
 
-                        {/* Password */}
                         <div>
-                            <label className="block text-white/80 text-sm font-medium mb-2">
-                                Password
-                            </label>
+                            <label className="block text-white/80 text-sm font-medium mb-2">Password</label>
                             <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -123,7 +106,7 @@ const LoginPage = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="Enter your password"
-                                    className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF] transition"
+                                    className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF]"
                                     required
                                 />
                                 <button
@@ -136,51 +119,39 @@ const LoginPage = () => {
                             </div>
                         </div>
 
-                        {/* Error Message */}
                         {error && (
-                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl">
+                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-3 rounded-xl">
                                 {error}
                             </p>
                         )}
 
-                        {/* Sign In Button */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-70 text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.02]"
+                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-70 text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all"
                         >
                             {loading ? "Signing in..." : "Sign In"}
                         </button>
                     </form>
 
-                    {/* Divider */}
                     <div className="my-8 flex items-center gap-4">
                         <div className="h-px bg-white/10 flex-1"></div>
-                        <span className="text-white/50 text-sm font-medium">OR</span>
+                        <span className="text-white/50 text-sm">OR</span>
                         <div className="h-px bg-white/10 flex-1"></div>
                     </div>
 
-                    {/* Google Sign In */}
                     <button
                         onClick={handleGoogleSignIn}
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all duration-200"
+                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black font-medium py-4 rounded-2xl transition-all"
                     >
-                        <Image 
-                            src="https://www.google.com/favicon.ico" 
-                            alt="Google" 
-                            width={20}
-                            height={20}
-                        />
                         Sign in with Google
                     </button>
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
                     Do not have an account?{' '}
-                    <a href="/signup" className="text-[#00D4FF] hover:underline font-medium">
-                        Sign up
-                    </a>
+                    <a href="/signup" className="text-[#00D4FF] hover:underline">Sign up</a>
                 </p>
             </div>
         </div>
