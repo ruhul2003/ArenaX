@@ -4,18 +4,28 @@ export async function middleware(request) {
     const token = request.cookies.get("token");
     const { pathname } = request.nextUrl;
 
-    // Public routes that don't need auth
-    const publicRoutes = ["/login", "/signup", "/", "/not-found"];
+    console.log("Middleware Check → Path:", pathname, "Token:", !!token); // For debugging
+
+    // Public routes
+    const isPublicRoute = 
+        pathname === "/" || 
+        pathname === "/login" || 
+        pathname === "/signup" ||
+        pathname.startsWith("/api");
 
     // Protected routes
-    const protectedRoutes = ["/all-facilities", "/add-facility", "/my-bookings", "/manage-facilities"];
+    const isProtectedRoute = 
+        pathname.startsWith("/all-facilities") ||
+        pathname.startsWith("/add-facility") ||
+        pathname.startsWith("/my-bookings") ||
+        pathname.startsWith("/manage-facilities");
 
-    // If user is NOT logged in and tries to access protected route → redirect to login
-    if (!token && protectedRoutes.some(route => pathname.startsWith(route))) {
+    // If trying to access protected route WITHOUT token → redirect to login
+    if (isProtectedRoute && !token) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // If user IS logged in and tries to access login/signup → redirect to all-facilities
+    // If logged in and trying to access login/signup → redirect to all-facilities
     if (token && (pathname === "/login" || pathname === "/signup")) {
         return NextResponse.redirect(new URL("/all-facilities", request.url));
     }
@@ -31,5 +41,6 @@ export const config = {
         "/manage-facilities/:path*",
         "/login",
         "/signup",
+        "/"
     ],
 };
