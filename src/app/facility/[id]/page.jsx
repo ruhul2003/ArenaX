@@ -4,7 +4,8 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Star, MapPin, Users, ShieldCheck, Loader2 } from 'lucide-react';
-import BookButton from '../BookButton';
+// 🧠 points directly to your stateful form pop-up modal button component
+import BookButton from '../../components/BookButton'; 
 
 const FacilityDetails = () => {
     const { id } = useParams();
@@ -84,7 +85,12 @@ const FacilityDetails = () => {
                                 <p className="text-5xl font-bold text-[#00D4FF]">৳{facility.price_per_hour}</p>
                             </div>
 
-                            <BookButton facility={facility} />
+                            {/* 🛠️ FIXED: Props explicitly broken down to map identically with your stateful form payload expectations */}
+                            <BookButton 
+                                facilityId={facility._id} 
+                                facilityName={facility.name} 
+                                hourlyRate={facility.price_per_hour} 
+                            />
                         </div>
 
                         <div className="bg-[#0A1F3D] p-6 rounded-3xl border border-white/5 flex items-start gap-4">

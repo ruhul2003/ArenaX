@@ -1,20 +1,55 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Edit3, MapPin, Loader2, Plus, Users, ShieldCheck, Tag } from 'lucide-react';
+import { Trash2, Edit3, MapPin, Loader2, Plus, Users } from 'lucide-react';
 
 const ManageMyFacilities = () => {
     const router = useRouter();
     const [facilities, setFacilities] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+
     const fetchMyFacilities = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/my-facilities`, { credentials: 'include' });
+            const response = await fetch(`${serverUrl}/api/my-facilities`, { credentials: 'include' });
             if (response.status === 401) return router.push('/login');
             setFacilities(await response.json());
-        } catch (err) { console.error("Fetch error:", err); }
-        finally { setIsLoading(false); }
+        } catch (err) { 
+            console.error("Fetch error:", err); 
+        } finally { 
+            setIsLoading(false); 
+        }
+    };
+
+    const handleDelete = async (id, name) => {
+        const confirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
+        if (!confirmed) return;
+
+        try {
+            // 🛠️ FIXED: Set endpoint path mapping format to plural /api/facilities for deletion operations
+            const response = await fetch(`${serverUrl}/api/facilities/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Server did not return valid JSON data. Verify backend routing specifications.");
+            }
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || "Failed to remove the facility listing.");
+            }
+
+            alert("Facility successfully removed!");
+            setFacilities(prev => prev.filter(item => item._id !== id));
+        } catch (error) {
+            console.error("Deletion error:", error);
+            alert(error.message);
+        }
     };
 
     useEffect(() => { fetchMyFacilities(); }, []);
@@ -64,8 +99,20 @@ const ManageMyFacilities = () => {
                                         <td className="p-6 flex items-center gap-2"><Users size={16} className="text-[#00D4FF]" /> {f.capacity || 'N/A'}</td>
                                         <td className="p-6 font-bold text-[#00D4FF]">৳{f.price_per_hour}</td>
                                         <td className="p-6 text-right space-x-2">
-                                            <button onClick={() => router.push(`/manage-facilities/edit/${f._id}`)} className="p-2 bg-white/5 hover:bg-[#00D4FF] hover:text-[#031637] rounded-lg transition"><Edit3 size={18} /></button>
-                                            <button className="p-2 bg-white/5 hover:bg-red-500 rounded-lg transition"><Trash2 size={18} /></button>
+                                            <button 
+                                                onClick={() => router.push(`/manage-facilities/edit/${f._id}`)} 
+                                                className="p-2 bg-white/5 hover:bg-[#00D4FF] hover:text-[#031637] rounded-lg transition"
+                                                title="Edit Listing"
+                                            >
+                                                <Edit3 size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(f._id, f.name)} 
+                                                className="p-2 bg-white/5 hover:bg-red-500 text-white hover:text-white rounded-lg transition"
+                                                title="Delete Listing"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
