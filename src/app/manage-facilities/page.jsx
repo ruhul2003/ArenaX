@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Trash2, Edit3, MapPin } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
 
 const ManageMyFacilities = () => {
     const router = useRouter();
@@ -11,22 +12,35 @@ const ManageMyFacilities = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchFacilities = async () => {
+    const { data: session } = authClient.useSession();
+    const userEmail = session?.user?.email;
+
+    const fetchMyFacilities = async () => {
+        if (!userEmail) {
+            setError("Please log in to view your facilities.");
+            setIsLoading(false);
+            return;
+        }
+
         try {
             setIsLoading(true);
-            const response = await fetch('/api/facilities');
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            
+            const response = await fetch(`${serverUrl}/facilities?owner_email=${encodeURIComponent(userEmail)}`, {
+                credentials: 'include',
+            });
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    throw new Error("Please log in to view your facilities.");
+                    throw new Error("Session expired. Please log in again.");
                 }
-                throw new Error(`Error ${response.status}: Failed to load data`);
+                throw new Error("Failed to load your facilities");
             }
 
             const result = await response.json();
-            const facilitiesData = Array.isArray(result) ? result : result.data || [];
-            setFacilities(facilitiesData);
+            setFacilities(Array.isArray(result) ? result : []);
         } catch (err) {
+            console.error(err);
             setError(err.message);
         } finally {
             setIsLoading(false);
@@ -34,42 +48,34 @@ const ManageMyFacilities = () => {
     };
 
     const handleDelete = async (facilityId) => {
-        if (!window.confirm("Are you absolutely sure you want to delete this facility? This action cannot be undone.")) {
-            return;
-        }
+        if (!window.confirm("Are you sure you want to delete this facility?")) return;
 
         try {
-            const response = await fetch(`/api/facilities?id=${facilityId}`, {
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            const response = await fetch(`${serverUrl}/facilities/${facilityId}`, {
                 method: 'DELETE',
+                credentials: 'include',
             });
 
-            const data = await response.json();
+            if (!response.ok) throw new Error("Failed to delete facility");
 
-            if (!response.ok) {
-                throw new Error(data.error || "Failed to delete the facility.");
-            }
-
-            setFacilities((prevFacilities) => 
-                prevFacilities.filter((facility) => (facility._id || facility.id) !== facilityId)
-            );
-            
+            setFacilities(prev => prev.filter(f => (f._id || f.id) !== facilityId));
             alert("Facility deleted successfully.");
         } catch (err) {
-            console.error("Delete Error:", err);
-            alert(err.message || "An error occurred while trying to delete.");
+            alert(err.message || "Delete failed");
         }
     };
 
     useEffect(() => {
-        fetchFacilities();
-    }, []);
+        fetchMyFacilities();
+    }, [userEmail]);
 
     if (isLoading) {
         return (
             <div className="min-h-screen bg-[#031637] text-white flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 border-4 border-[#00D4FF] border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-white/70 animate-pulse">Loading your facilities...</p>
+                    <p className="text-white/70">Loading your facilities...</p>
                 </div>
             </div>
         );
@@ -79,11 +85,8 @@ const ManageMyFacilities = () => {
         return (
             <div className="min-h-screen bg-[#031637] text-white flex items-center justify-center p-6">
                 <div className="bg-red-500/10 border border-red-500/20 max-w-md w-full p-6 rounded-2xl text-center">
-                    <p className="text-red-400 font-medium mb-4">{error}</p>
-                    <button
-                        onClick={fetchFacilities}
-                        className="bg-[#00D4FF] text-[#031637] px-6 py-2 rounded-xl font-semibold hover:bg-[#00B8E0] transition"
-                    >
+                    <p className="text-red-400">{error}</p>
+                    <button onClick={fetchMyFacilities} className="mt-4 bg-[#00D4FF] text-black px-6 py-2 rounded-xl">
                         Try Again
                     </button>
                 </div>
@@ -96,25 +99,25 @@ const ManageMyFacilities = () => {
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-white/10 pb-5">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Manage My Facilities</h1>
-                        <p className="text-white/60 text-sm mt-1">Review, edit, or remove athletic facilities you have hosted.</p>
+                        <h1 className="text-3xl font-bold">Manage My Facilities</h1>
+                        <p className="text-white/60 mt-1">You have listed {facilities.length} facility(s)</p>
                     </div>
                     <button
                         onClick={() => router.push('/add-facility')}
-                        className="bg-[#00D4FF] text-[#031637] font-semibold px-5 py-2.5 rounded-xl text-sm hover:scale-105 active:scale-95 transition-all text-center self-start sm:self-auto"
+                        className="bg-[#00D4FF] text-[#031637] font-semibold px-6 py-3 rounded-xl hover:scale-105 transition"
                     >
                         + Add New Facility
                     </button>
                 </div>
 
                 {facilities.length === 0 ? (
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center max-w-xl mx-auto mt-10">
-                        <p className="text-white/70 text-lg mb-6">You haven't listed any facilities yet.</p>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center">
+                        <p className="text-white/70 text-lg">You have not added any facilities yet.</p>
                         <button
                             onClick={() => router.push('/add-facility')}
-                            className="border border-[#00D4FF] text-[#00D4FF] hover:bg-[#00D4FF] hover:text-[#031637] transition duration-200 px-6 py-2.5 rounded-xl font-medium"
+                            className="mt-6 bg-[#00D4FF] text-[#031637] px-8 py-3 rounded-xl font-semibold"
                         >
-                            List Your First Facility
+                            Add Your First Facility
                         </button>
                     </div>
                 ) : (
@@ -122,57 +125,42 @@ const ManageMyFacilities = () => {
                         {facilities.map((facility) => {
                             const facilityId = facility._id || facility.id;
                             return (
-                                <div
-                                    key={facilityId}
-                                    className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition group flex flex-col justify-between"
-                                >
-                                    <div className="relative h-48 w-full bg-white/10">
-                                        {facility.image || facility.imageUrl ? (
-                                            <Image
-                                                src={facility.image || facility.imageUrl}
-                                                alt={facility.name}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                priority={false}
-                                                className="object-cover group-hover:scale-105 transition duration-300"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-white/30 text-sm">
-                                                No Image Available
-                                            </div>
-                                        )}
+                                <div key={facilityId} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/30 transition">
+                                    <div className="relative h-48">
+                                        <Image
+                                            src={facility.image || '/placeholder.jpg'}
+                                            alt={facility.name}
+                                            fill
+                                            className="object-cover"
+                                        />
                                     </div>
 
-                                    <div className="p-5 flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <h3 className="text-xl font-bold tracking-tight text-white line-clamp-1">{facility.name}</h3>
-                                            <div className="flex items-center gap-1.5 text-white/60 text-sm mt-2">
-                                                <MapPin size={16} className="text-[#00D4FF]" />
-                                                <span className="line-clamp-1">{facility.location}</span>
-                                            </div>
-                                            <p className="text-white/80 text-sm mt-3 line-clamp-2">
-                                                {facility.description || "No description provided for this listing."}
-                                            </p>
+                                    <div className="p-5">
+                                        <h3 className="font-bold text-lg">{facility.name}</h3>
+                                        <div className="flex items-center gap-1.5 text-white/60 text-sm mt-1">
+                                            <MapPin size={16} />
+                                            <span>{facility.location}</span>
                                         </div>
 
-                                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-                                            <span className="text-[#00D4FF] font-bold text-lg">
-                                                ${facility.price_per_hour || facility.pricePerHour || 0}
-                                                <span className="text-xs text-white/50 font-normal">/hr</span>
+                                        <p className="text-white/70 text-sm mt-3 line-clamp-2">
+                                            {facility.description}
+                                        </p>
+
+                                        <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                                            <span className="text-[#00D4FF] font-bold">
+                                                ৳{facility.price_per_hour}/hr
                                             </span>
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex gap-2">
                                                 <button
                                                     onClick={() => router.push(`/manage-facilities/edit/${facilityId}`)}
-                                                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/80 hover:text-white transition"
-                                                    title="Edit Facility"
+                                                    className="p-2 hover:bg-white/10 rounded-lg transition"
                                                 >
                                                     <Edit3 size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(facilityId)}
-                                                    className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 hover:text-red-300 transition"
-                                                    title="Delete Facility"
+                                                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
