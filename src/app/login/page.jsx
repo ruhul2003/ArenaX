@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { FcGoogle } from "react-icons/fc"; // ➕ Imported matching registration views
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +13,8 @@ const LoginPage = () => {
         email: '',
         password: ''
     });
+
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
     const handleChange = (e) => {
         setError('');
@@ -27,15 +30,12 @@ const LoginPage = () => {
         setError('');
 
         try {
-            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
-            
-            // ✅ DIRECT CALL TO EXPRESS JWT BACKEND: Adjusted base endpoint path to match your layout's auth controllers
             const response = await fetch(`${serverUrl}/api/auth/login`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json' 
                 },
-                credentials: 'include', // 👈 Crucial for saving your HttpOnly secure session cookie cleanly in the browser
+                credentials: 'include', 
                 body: JSON.stringify({ 
                     email: formData.email,
                     password: formData.password 
@@ -49,7 +49,6 @@ const LoginPage = () => {
             }
 
             if (data.success) {
-                // ✅ Hard redirect cleanly resets the global layout caching tree with your fresh authentication cookie
                 window.location.href = '/all-facilities';
             }
 
@@ -59,6 +58,11 @@ const LoginPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // ➕ New Direct Redirect Authentication trigger handler
+    const handleGoogleSignIn = () => {
+        window.location.href = `${serverUrl}/api/auth/google`;
     };
 
     return (
@@ -135,6 +139,23 @@ const LoginPage = () => {
                             {loading ? "Signing in..." : "Sign In"}
                         </button>
                     </form>
+
+                    {/* ➕ Added Divider Layout element line */}
+                    <div className="my-6 flex items-center gap-4">
+                        <div className="h-px bg-white/10 flex-1"></div>
+                        <span className="text-white/50 text-sm font-medium">OR</span>
+                        <div className="h-px bg-white/10 flex-1"></div>
+                    </div>
+
+                    {/* ➕ Added Google Authentication Trigger Button element */}
+                    <button
+                        onClick={handleGoogleSignIn}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all"
+                    >
+                        <FcGoogle size={24} />
+                        Sign in with Google
+                    </button>
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
