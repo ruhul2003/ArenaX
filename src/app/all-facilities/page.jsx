@@ -11,7 +11,22 @@ const AllFacilities = () => {
     useEffect(() => {
         const fetchFacilities = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/facilities`);
+                // ✅ FIXED: Fallback URL string + added missing /api prefix matching backend endpoints
+                const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+                const res = await fetch(`${baseUrl}/api/facilities`);
+                
+                // Fail-safe protection check: ensure the response is actually JSON before parsing
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    console.error("❌ Expected JSON from backend, but received HTML structure instead.");
+                    setFacilities([]);
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
                 const data = await res.json();
                 setFacilities(data);
             } catch (error) {
@@ -102,7 +117,7 @@ const AllFacilities = () => {
                                         <div className="flex items-center gap-1">
                                             <span className="text-[#00D4FF]">★</span>
                                             <span className="text-white font-medium">
-                                                {facility.booking_count}
+                                                {facility.booking_count || 0}
                                             </span>
                                         </div>
 

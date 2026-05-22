@@ -1,50 +1,41 @@
 import { NextResponse } from "next/server";
 
 export async function middleware(request) {
+  // ✅ Read the custom JWT auth cookie set by the Express backend
+  const token = request.cookies.get("token")?.value;
+  const { pathname } = request.nextUrl;
 
-    // Get cookie value properly
-    const token = request.cookies.get("token")?.value;
+  // Define paths that require an active login session
+  const protectedRoutes = [
+    "/all-facilities",
+    "/add-facility",
+    "/manage-facilities", // 👈 Added protection for the management panel
+    "/my-bookings"
+  ];
 
-    const { pathname } = request.nextUrl;
+  // 1. Protect internal paths from unauthenticated guests
+  const isProtected = protectedRoutes.some(route => pathname.startsWith(route));
+  
+  if (!token && isProtected) {
+    // Save original destination to redirect back post-login if desired later
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-    console.log(`Middleware → Path: ${pathname} | Token: ${!!token}`);
+  // 2. Prevent logged-in users from accessing entry gates (login/signup) again
+  if (token && (pathname === "/login" || pathname === "/signup")) {
+    return NextResponse.redirect(new URL("/", request.url)); // 👈 Redirecting home ('/') is safer if all-facilities is a partial view
+  }
 
-    // Protected routes
-    const protectedRoutes = [
-        "/all-facilities",
-        "/add-facility",
-        "/my-bookings",
-        "/manage-facilities"
-    ];
-
-    // Redirect to login if no token
-    if (
-        protectedRoutes.some(route => pathname.startsWith(route)) &&
-        !token
-    ) {
-        return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    // Prevent logged in users from visiting login/signup
-    if (
-        token &&
-        (pathname === "/login" || pathname === "/signup")
-    ) {
-        return NextResponse.redirect(
-            new URL("/all-facilities", request.url)
-        );
-    }
-
-    return NextResponse.next();
+  return NextResponse.next();
 }
 
 export const config = {
-    matcher: [
-        "/all-facilities/:path*",
-        "/add-facility/:path*",
-        "/my-bookings/:path*",
-        "/manage-facilities/:path*",
-        "/login",
-        "/signup",
-    ],
+  matcher: [
+    "/all-facilities/:path*", 
+    "/add-facility/:path*", 
+    "/manage-facilities/:path*",
+    "/my-bookings/:path*",
+    "/login", 
+    "/signup"
+  ],
 };

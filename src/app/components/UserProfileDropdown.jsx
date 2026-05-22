@@ -2,15 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
-import { User, LogOut, Calendar, Settings, ChevronDown } from 'lucide-react';
+import { LogOut, Calendar, Settings, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 
 const UserProfileDropdown = ({ user }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const router = useRouter();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -24,20 +21,32 @@ const UserProfileDropdown = ({ user }) => {
 
     const handleLogout = async () => {
         try {
-            await authClient.signOut({
-                fetchOptions: {
-                    onSuccess: () => {
-                        router.push('/login');
-                        router.refresh();
-                    }
-                }
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            
+            // ✅ DIRECT CALL TO EXPRESS JWT BACKEND: Requests clearing the secure cookie
+            const response = await fetch(`${serverUrl}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include', // 👈 Essential for your backend to successfully target and clear the client cookie
             });
+
+            const data = await response.json();
+
+            if (data.success || response.ok) {
+                setIsOpen(false);
+                // ✅ Hard redirect completely resets the client layout cache context cleanly
+                window.location.href = '/login';
+            } else {
+                console.error("Logout dropped from server response:", data.message);
+            }
         } catch (error) {
-            console.error("Logout failed:", error);
+            console.error("Logout failed network request:", error);
         }
     };
 
-    const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
+    // ✅ Enhanced robust initials generator to safely handle nested strings or empty strings gracefully
+    const userInitials = user?.name 
+        ? user.name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) 
+        : (user?.email ? user.email[0].toUpperCase() : 'U');
 
     return (
         <div className="relative" ref={dropdownRef}>

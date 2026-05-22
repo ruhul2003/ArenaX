@@ -1,10 +1,7 @@
 'use client';
 
-import { authClient } from '../../lib/auth-client';
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -15,8 +12,6 @@ const LoginPage = () => {
         email: '',
         password: ''
     });
-
-    const router = useRouter();
 
     const handleChange = (e) => {
         setError('');
@@ -32,50 +27,35 @@ const LoginPage = () => {
         setError('');
 
         try {
-            const { data, error } = await authClient.signIn.email({
-                email: formData.email,
-                password: formData.password,
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            
+            // ✅ DIRECT CALL TO EXPRESS JWT BACKEND: Adjusted base endpoint path to match your layout's auth controllers
+            const response = await fetch(`${serverUrl}/api/auth/login`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                credentials: 'include', // 👈 Crucial for saving your HttpOnly secure session cookie cleanly in the browser
+                body: JSON.stringify({ 
+                    email: formData.email,
+                    password: formData.password 
+                }), 
             });
 
-            if (error) {
-                throw new Error(error.message || "Invalid email or password");
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Invalid email or password");
             }
 
-            try {
-                // 💡 FIX: Wrapped the environment variable correctly in ${} syntax
-                await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: formData.email }),
-                    credentials: 'include', 
-                });
-            } catch (syncErr) {
-                console.error("Backend session cookie sync failed:", syncErr);
+            if (data.success) {
+                // ✅ Hard redirect cleanly resets the global layout caching tree with your fresh authentication cookie
+                window.location.href = '/all-facilities';
             }
-
-            // 💡 FIX: Move to target route first, then refresh data structures cleanly
-            router.push('/');
-            router.refresh(); 
 
         } catch (err) {
             console.error("Login client error:", err);
             setError(err.message || "Invalid email or password");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleGoogleSignIn = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            await authClient.signIn.social({
-                provider: 'google',
-                callbackURL: '/' 
-            });
-        } catch (err) {
-            console.error("Google login error:", err);
-            setError("Google sign-in failed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -93,9 +73,9 @@ const LoginPage = () => {
                 </div>
 
                 {/* Login Card */}
-                <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10">
+                <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10 shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Email */}
+                        {/* Email Field */}
                         <div>
                             <label className="block text-white/80 text-sm font-medium mb-2">
                                 Email Address
@@ -103,15 +83,16 @@ const LoginPage = () => {
                             <input
                                 type="email"
                                 name="email"
+                                disabled={loading}
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="you@example.com"
-                                className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF] transition"
+                                className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF] transition disabled:opacity-50"
                                 required
                             />
                         </div>
 
-                        {/* Password */}
+                        {/* Password Field */}
                         <div>
                             <label className="block text-white/80 text-sm font-medium mb-2">
                                 Password
@@ -120,65 +101,45 @@ const LoginPage = () => {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     name="password"
+                                    disabled={loading}
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="Enter your password"
-                                    className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF] transition"
+                                    className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/40 focus:outline-none focus:border-[#00D4FF] transition pr-14 disabled:opacity-50"
                                     required
                                 />
                                 <button
                                     type="button"
+                                    disabled={loading}
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                                    className="absolute right-5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition disabled:opacity-30"
                                 >
                                     {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Error Message */}
+                        {/* Error Message Module */}
                         {error && (
-                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl">
+                            <p className="text-red-400 text-sm text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20 animate-in fade-in duration-200">
                                 {error}
                             </p>
                         )}
 
-                        {/* Sign In Button */}
+                        {/* Submit Action */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-70 text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.02]"
+                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-50 text-[#031637] font-bold py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:scale-100 shadow-lg shadow-[#00D4FF]/10 flex items-center justify-center"
                         >
                             {loading ? "Signing in..." : "Sign In"}
                         </button>
                     </form>
-
-                    {/* Divider */}
-                    <div className="my-8 flex items-center gap-4">
-                        <div className="h-px bg-white/10 flex-1"></div>
-                        <span className="text-white/50 text-sm font-medium">OR</span>
-                        <div className="h-px bg-white/10 flex-1"></div>
-                    </div>
-
-                    {/* Google Sign In */}
-                    <button
-                        onClick={handleGoogleSignIn}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all duration-200"
-                    >
-                        <Image 
-                            src="https://www.google.com/favicon.ico" 
-                            alt="Google" 
-                            width={20}
-                            height={20}
-                        />
-                        Sign in with Google
-                    </button>
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
                     Do not have an account?{' '}
-                    <a href="/signup" className="text-[#00D4FF] hover:underline font-medium">
+                    <a href="/signup" className="text-[#00D4FF] hover:underline font-medium transition-colors">
                         Sign up
                     </a>
                 </p>

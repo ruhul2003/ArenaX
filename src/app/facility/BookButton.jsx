@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Calendar, Clock, DollarSign, Dumbbell } from 'lucide-react';
+import { X, Calendar, Clock, Dumbbell } from 'lucide-react';
 
 const BookButton = ({ facility }) => {
     const router = useRouter();
@@ -33,29 +33,32 @@ const BookButton = ({ facility }) => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch('/api/bookings', {
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            
+            const response = await fetch(`${serverUrl}/api/bookings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', 
                 body: JSON.stringify({
-                    facility_id: facility._id || facility.id,
-                    facility_name: facility.name,
+                    facility_id: facility?._id || facility?.id,
+                    facility_name: facility?.name,
                     booking_date: bookingDate,
                     time_slot: timeSlot,
-                    hours: hours,
-                    total_price: totalPrice
+                    hours: Number(hours),
+                    total_price: Number(totalPrice)
                 })
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                if (response.status === 401) {
+                if (response.status === 401 || response.status === 403) {
                     throw new Error("You must be logged in to make a reservation.");
                 }
-                throw new Error(result.error || "Failed to finalize booking reservation.");
+                throw new Error(result.error || result.message || "Failed to finalize booking reservation.");
             }
 
-            alert(`Reservation successful! Your reservation for ${facility.name} is now pending approval.`);
+            alert(`Reservation successful! Your booking for ${facility?.name} is now pending approval.`);
             handleCloseModal();
             router.refresh();
         } catch (error) {
@@ -91,8 +94,8 @@ const BookButton = ({ facility }) => {
                         <form onSubmit={handleConfirmBooking} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1">Facility Name</label>
-                                <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-semibold text-white/90">
-                                    {facility.name}
+                                <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-semibold text-white/90 truncate">
+                                    {facility?.name}
                                 </div>
                             </div>
 
@@ -104,9 +107,9 @@ const BookButton = ({ facility }) => {
                                         type="date" 
                                         required
                                         value={bookingDate}
-                                        min={new Date().toISOString().split('T')[0]} // Block choice of retro-active past dates
+                                        min={new Date().toISOString().split('T')[0]} 
                                         onChange={(e) => setBookingDate(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-[#00D4FF]"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-[#00D4FF] [color-scheme:dark]"
                                     />
                                 </div>
                             </div>
@@ -149,11 +152,10 @@ const BookButton = ({ facility }) => {
                             <div className="bg-[#00D4FF]/5 border border-[#00D4FF]/20 rounded-xl p-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-medium text-white/50 uppercase tracking-wider">Total Est. Price</p>
-                                    <p className="text-xs text-white/40 mt-0.5">(${facility.price_per_hour || 0}/hr base rate)</p>
+                                    <p className="text-xs text-white/40 mt-0.5">(৳{facility?.price_per_hour || 0}/hr base rate)</p>
                                 </div>
-                                <div className="flex items-center text-[#00D4FF] font-bold text-2xl">
-                                    <DollarSign size={22} className="stroke-[2.5]" />
-                                    <span>{totalPrice}</span>
+                                <div className="flex items-center text-[#00D4FF] font-bold text-2xl tracking-tight">
+                                    <span>৳{totalPrice}</span>
                                 </div>
                             </div>
 

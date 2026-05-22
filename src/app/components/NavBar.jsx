@@ -4,40 +4,39 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
 import UserProfileDropdown from './UserProfileDropdown';
 
 const NavBar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [isPending, setIsPending] = useState(true);
     const pathname = usePathname();
-    
-    const { data: session, isPending, refetch } = authClient.useSession();
-    const user = session?.user;
 
+    // ✅ Fetch authenticated user state from custom Express backend on mount and path transitions
     useEffect(() => {
-        refetch();
-    }, [pathname, refetch]);
+        const fetchUserSession = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/me`, {
+                    method: 'GET',
+                    credentials: 'include', // Sends cross-origin secure HttpOnly cookies
+                });
 
-    useEffect(() => {
-        const syncCookieSession = async () => {
-            if (user?.email) {
-                try {
-                    await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: user.email }),
-                        credentials: 'include', 
-                    });
-                } catch (err) {
-                    console.error("Automatic navbar session sync failed:", err);
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data.user || data); // Structural safety matching your backend payload
+                } else {
+                    setUser(null);
                 }
+            } catch (err) {
+                console.error("Express session check failed:", err);
+                setUser(null);
+            } finally {
+                setIsPending(false);
             }
         };
-        
-        if (!isPending) {
-            syncCookieSession();
-        }
-    }, [user, isPending]);
+
+        fetchUserSession();
+    }, [pathname]); // Fires on route shifts to sync state smoothly across views
 
     return (
         <div className="bg-[#031637] sticky top-0 z-50 border-b border-white/10">
@@ -85,6 +84,7 @@ const NavBar = () => {
                         )}
                     </ul>
 
+                    {/* Desktop Auth Layout */}
                     <div className="hidden md:flex items-center gap-4">
                         {isPending ? (
                             <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />
@@ -108,6 +108,7 @@ const NavBar = () => {
                         )}
                     </div>
 
+                    {/* Mobile Menu Action Bar */}
                     <div className="md:hidden flex items-center gap-4">
                         {!isPending && user && <UserProfileDropdown user={user} />}
                         <button
@@ -120,7 +121,7 @@ const NavBar = () => {
                     </div>
                 </div>
 
-                {/* Mobile Menu Layout */}
+                {/* Mobile Menu Dropdown Panel */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden mt-4 pt-4 border-t border-white/10">
                         <ul className="flex flex-col gap-4 text-white/90 text-base">

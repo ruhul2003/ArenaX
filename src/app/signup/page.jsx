@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { FcGoogle } from "react-icons/fc";
-import { authClient } from '../../lib/auth-client'; 
 import { useRouter } from 'next/navigation';
 
 const SignupPage = () => {
@@ -19,6 +18,7 @@ const SignupPage = () => {
     });
 
     const router = useRouter();
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
     const handleChange = (e) => {
         setError('');
@@ -47,38 +47,36 @@ const SignupPage = () => {
         }
 
         try {
-            const signupPayload = {
-                email: formData.email,
-                password: formData.password,
-                name: formData.name,
-            };
+            // ✅ This is where the fetch logic lives!
+            const response = await fetch(`${serverUrl}/api/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // Pass your destructured state values directly here:
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    image: formData.image || undefined
+                }),
+            });
 
-            if (formData.image && formData.image.trim() !== "") {
-                signupPayload.image = formData.image;
+            // Catch HTML Error pages before they hit JSON.parse and trigger the Banner error
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Server configuration error (Status: ${response.status}). Please verify backend routing rules.`);
             }
 
-            const { data, error: authError } = await authClient.signUp.email(signupPayload);
+            const result = await response.json();
 
-            if (authError) {
-                throw new Error(authError.message || "Registration failed");
-            }
-
-            // 💡 FIX: Sync the session data with your server cookie handler immediately upon registration
-            try {
-                await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: formData.email }),
-                    credentials: 'include', 
-                });
-            } catch (syncErr) {
-                console.error("Backend signup cookie sync failed:", syncErr);
+            if (!response.ok) {
+                throw new Error(result.message || "Registration failed");
             }
 
             alert("✅ Account created successfully!");
             
-            // Go home safely with functional synced states
-            router.push('/');
+            router.push('/'); 
             router.refresh();
             
         } catch (err) {
@@ -89,20 +87,8 @@ const SignupPage = () => {
         }
     };
 
-    const handleGoogleSignUp = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            await authClient.signIn.social({
-                provider: 'google',
-                callbackURL: '/' 
-            });
-        } catch (err) {
-            console.error("Google signup exception:", err);
-            setError("Google signup failed");
-        } finally {
-            setLoading(false);
-        }
+    const handleGoogleSignUp = () => {
+        window.location.href = `${serverUrl}/api/auth/google`;
     };
 
     return (
@@ -115,7 +101,7 @@ const SignupPage = () => {
                     <p className="text-white/70 mt-2 text-lg">Create your account</p>
                 </div>
 
-                <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10">
+                <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10 shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -188,7 +174,7 @@ const SignupPage = () => {
                         </div>
 
                         {error && (
-                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl border border-red-500/20">
+                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl border border-red-500/20 px-4">
                                 {error}
                             </p>
                         )}
@@ -196,9 +182,16 @@ const SignupPage = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-70 text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all duration-200 hover:scale-[1.02]"
+                            className="w-full bg-[#00D4FF] hover:bg-[#00B8E0] disabled:opacity-70 text-[#031637] font-semibold py-4 rounded-2xl text-lg transition-all duration-200 flex items-center justify-center gap-2"
                         >
-                            {loading ? "Creating Account..." : "Create Account"}
+                            {loading ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span>Creating Account...</span>
+                                </>
+                            ) : (
+                                "Create Account"
+                            )}
                         </button>
                     </form>
 

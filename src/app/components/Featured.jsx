@@ -1,14 +1,16 @@
 import React from 'react';
+import { cookies } from 'next/headers'; // ✅ Replaced Better-Auth headers with native Next cookies
 import { getFacilities } from '../lib/data';
-import { auth } from "@/lib/auth"; 
-import { headers } from "next/headers";
 import Image from 'next/image';
 import { FaStar } from "react-icons/fa";
 
 const Featured = async () => {
     const facilities = await getFacilities();
-    const session = await auth.api.getSession({ headers: await headers() });
-    const isLoggedIn = !!session?.user;
+    
+    // ✅ Check your custom Express JWT "token" cookie directly from the browser context
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    const isLoggedIn = !!token;
 
     return (
         <div className="py-16 md:py-24 bg-[#031637]">
