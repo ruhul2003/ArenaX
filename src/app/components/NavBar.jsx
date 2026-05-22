@@ -12,23 +12,25 @@ const NavBar = () => {
     const [isPending, setIsPending] = useState(true);
     const pathname = usePathname();
 
-    // ✅ Fetch authenticated user state from custom Express backend on mount and path transitions
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+
     useEffect(() => {
         const fetchUserSession = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/me`, {
+                const res = await fetch(`${serverUrl}/api/auth/me`, {
                     method: 'GET',
-                    credentials: 'include', // Sends cross-origin secure HttpOnly cookies
+                    credentials: 'include',
                 });
 
                 if (res.ok) {
                     const data = await res.json();
-                    setUser(data.user || data); // Structural safety matching your backend payload
+                    const resolvedUser = data.user || data;
+                    setUser(resolvedUser && (resolvedUser.email || resolvedUser.id) ? resolvedUser : null);
                 } else {
                     setUser(null);
                 }
             } catch (err) {
-                console.error("Express session check failed:", err);
+                console.error("Session check failed:", err);
                 setUser(null);
             } finally {
                 setIsPending(false);
@@ -36,47 +38,46 @@ const NavBar = () => {
         };
 
         fetchUserSession();
-    }, [pathname]); // Fires on route shifts to sync state smoothly across views
+    }, [pathname, serverUrl]);
+
+    const isAuthenticated = !isPending && user !== null;
 
     return (
         <div className="bg-[#031637] sticky top-0 z-50 border-b border-white/10">
             <nav className="max-w-7xl mx-auto px-5 md:px-6 py-3 md:py-4">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
-                    <Link
-                        href="/"
-                        className="text-2xl md:text-3xl font-bold text-white tracking-tight"
-                    >
+                    <Link href="/" className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                         Arena<span className="text-[#00D4FF]">X</span>
                     </Link>
 
                     {/* Desktop Navigation */}
                     <ul className="hidden md:flex items-center gap-6 lg:gap-8 text-white/90">
                         <li>
-                            <Link href="/" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
+                            <Link href="/" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
                                 Home
                             </Link>
                         </li>
                         <li>
-                            <Link href="/all-facilities" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
+                            <Link href="/all-facilities" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
                                 All Facilities
                             </Link>
                         </li>
                         
-                        {!isPending && user && (
+                        {isAuthenticated && (
                             <>
                                 <li>
-                                    <Link href="/my-bookings" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                    <Link href="/my-bookings" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
                                         My Bookings
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/add-facility" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                    <Link href="/add-facility" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
                                         Add Facility
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href="/manage-facilities" className="text-lg md:text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                    <Link href="/manage-facilities" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
                                         Manage My Facilities
                                     </Link>
                                 </li>
@@ -84,7 +85,7 @@ const NavBar = () => {
                         )}
                     </ul>
 
-                    {/* Desktop Auth Layout */}
+                    {/* Desktop Auth Section */}
                     <div className="hidden md:flex items-center gap-4">
                         {isPending ? (
                             <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />
@@ -92,36 +93,29 @@ const NavBar = () => {
                             <UserProfileDropdown user={user} />
                         ) : (
                             <>
-                                <Link
-                                    href="/login"
-                                    className="text-white/90 hover:text-white px-5 py-2 text-sm md:text-base font-medium transition-colors"
-                                >
+                                <Link href="/login" className="text-white/90 hover:text-white px-5 py-2 text-base font-medium transition-colors">
                                     Login
                                 </Link>
-                                <Link
-                                    href="/signup"
-                                    className="bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold px-6 md:px-8 py-2.5 text-sm md:text-base rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                                >
-                                    SignUp
+                                <Link href="/signup" className="bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold px-6 py-2.5 text-base rounded-xl transition-all duration-200 hover:scale-105 active:scale-95">
+                                    Sign Up
                                 </Link>
                             </>
                         )}
                     </div>
 
-                    {/* Mobile Menu Action Bar */}
+                    {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center gap-4">
                         {!isPending && user && <UserProfileDropdown user={user} />}
                         <button
                             className="text-white p-2"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            aria-label="Toggle Menu"
                         >
                             {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
                         </button>
                     </div>
                 </div>
 
-                {/* Mobile Menu Dropdown Panel */}
+                {/* Mobile Menu */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden mt-4 pt-4 border-t border-white/10">
                         <ul className="flex flex-col gap-4 text-white/90 text-base">
@@ -135,7 +129,8 @@ const NavBar = () => {
                                     All Facilities
                                 </Link>
                             </li>
-                            {!isPending && user && (
+                            
+                            {isAuthenticated && (
                                 <>
                                     <li>
                                         <Link href="/my-bookings" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
@@ -171,7 +166,7 @@ const NavBar = () => {
                                         className="bg-[#00D4FF] text-[#031637] font-semibold py-3 rounded-xl text-center"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
-                                        SignUp
+                                        Sign Up
                                     </Link>
                                 </div>
                             </div>

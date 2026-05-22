@@ -11,8 +11,8 @@ export default function MyBookingsPage() {
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [cancellingId, setCancellingId] = useState(null); // Tracks which booking is processing cancellation
-    const [confirmCancelId, setConfirmCancelId] = useState(null); // Tracks the "Are you sure?" confirmation state
+    const [cancellingId, setCancellingId] = useState(null); 
+    const [confirmCancelId, setConfirmCancelId] = useState(null); 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
     const fetchMyBookings = async () => {
@@ -66,12 +66,10 @@ export default function MyBookingsPage() {
                 throw new Error(data.message || 'Failed to cancel the reservation.');
             }
 
-            // Real-time local state update: change status to CANCELLED locally
             setBookings(prevBookings => 
                 prevBookings.map(b => b._id === bookingId ? { ...b, status: 'CANCELLED' } : b)
             );
             
-            // Clear out confirmation state
             setConfirmCancelId(null);
         } catch (err) {
             setError(err.message);
@@ -147,7 +145,6 @@ export default function MyBookingsPage() {
                                         isCancelled ? 'border-white/5 opacity-60' : 'border-white/5'
                                     }`}
                                 >
-                                    {/* Facility Visual Thumbnail */}
                                     <div className="relative w-full md:w-64 h-48 md:h-auto bg-[#031637] flex-shrink-0">
                                         <Image 
                                             src={facilityImage} 
@@ -158,7 +155,6 @@ export default function MyBookingsPage() {
                                         />
                                     </div>
 
-                                    {/* Main Details Panel */}
                                     <div className="p-6 md:p-8 flex-grow flex flex-col justify-between gap-6">
                                         <div>
                                             <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
@@ -198,7 +194,6 @@ export default function MyBookingsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Actionable Cancellation Row */}
                                         {!isCancelled && (
                                             <div className="flex items-center justify-end border-t border-white/5 pt-4">
                                                 {confirmCancelId === b._id ? (

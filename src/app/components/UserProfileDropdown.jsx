@@ -23,17 +23,15 @@ const UserProfileDropdown = ({ user }) => {
         try {
             const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
             
-            // ✅ DIRECT CALL TO EXPRESS JWT BACKEND: Requests clearing the secure cookie
             const response = await fetch(`${serverUrl}/api/auth/logout`, {
                 method: 'POST',
-                credentials: 'include', // 👈 Essential for your backend to successfully target and clear the client cookie
+                credentials: 'include', 
             });
 
             const data = await response.json();
 
             if (data.success || response.ok) {
                 setIsOpen(false);
-                // ✅ Hard redirect completely resets the client layout cache context cleanly
                 window.location.href = '/login';
             } else {
                 console.error("Logout dropped from server response:", data.message);
@@ -43,7 +41,6 @@ const UserProfileDropdown = ({ user }) => {
         }
     };
 
-    // ✅ Enhanced robust initials generator to safely handle nested strings or empty strings gracefully
     const userInitials = user?.name 
         ? user.name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase().slice(0, 2) 
         : (user?.email ? user.email[0].toUpperCase() : 'U');

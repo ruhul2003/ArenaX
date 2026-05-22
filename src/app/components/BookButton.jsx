@@ -8,16 +8,13 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
     const router = useRouter();
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-    // Modal Visibility State
     const [isOpen, setIsOpen] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
 
-    // Form Input States
     const [bookingDate, setBookingDate] = useState('');
     const [timeSlot, setTimeSlot] = useState('');
     const [hours, setHours] = useState(1);
 
-    // Pre-defined time slots available for reservation
     const availableSlots = [
         "08:00 AM - 10:00 AM",
         "10:00 AM - 12:00 PM",
@@ -28,14 +25,12 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
         "08:00 PM - 10:00 PM"
     ];
 
-    // Dynamically calculate final billing amount
     const rate = Number(hourlyRate) || 0;
     const totalBill = rate * Number(hours);
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
 
-        // 🛡️ Front-end Safety Validation
         if (!bookingDate || !timeSlot || hours <= 0) {
             alert('Please fill out all required fields before completing your reservation.');
             return;
@@ -43,12 +38,11 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
 
         setIsBooking(true);
         try {
-            // 📦 Construct payload structure that fits your Express endpoint requirements exactly
             const payload = {
                 facilityId: facilityId,
                 facility_name: facilityName,
-                date: bookingDate,       // e.g., "2026-05-27"
-                slot: timeSlot,         // e.g., "06:00 PM - 08:00 PM"
+                date: bookingDate,      
+                slot: timeSlot,        
                 hours: Number(hours),
                 totalBill: totalBill
             };
@@ -61,7 +55,7 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-                credentials: 'include', // Permits Express token cookies verification
+                credentials: 'include', 
             });
 
             const contentType = response.headers.get("content-type");
@@ -76,7 +70,7 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
             }
 
             alert('🎉 Reservation completed successfully!');
-            setIsOpen(false); // Close Modal
+            setIsOpen(false); 
             router.push('/my-bookings');
             router.refresh();
 
@@ -90,7 +84,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
 
     return (
         <>
-            {/* 1. Main Action Trigger Button */}
             <button
                 onClick={() => setIsOpen(true)}
                 className="w-full bg-[#00D4FF] hover:bg-[#00b2d6] text-[#031637] py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg active:scale-[0.98]"
@@ -99,7 +92,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                 <span>Reserve This Venue Now</span>
             </button>
 
-            {/* 2. Interactive Backdrop Modal Form */}
             {isOpen && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all animate-fadeIn">
                     <div className="bg-[#0A1F3D] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative text-white animate-scaleUp">
@@ -118,7 +110,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                         <p className="text-sm text-white/60 mb-6">Specify your playing times below to check database availability.</p>
 
                         <form onSubmit={handleFormSubmit} className="space-y-5">
-                            {/* Input Field: Date Selection */}
                             <div>
                                 <label className="block text-xs uppercase tracking-wider text-white/40 font-semibold mb-2 flex items-center gap-1">
                                     <Calendar size={12} /> Select Date
@@ -133,7 +124,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 />
                             </div>
 
-                            {/* Input Field: Time Slot Selection */}
                             <div>
                                 <label className="block text-xs uppercase tracking-wider text-white/40 font-semibold mb-2 flex items-center gap-1">
                                     <Clock size={12} /> Desired Time Slot
@@ -151,7 +141,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 </select>
                             </div>
 
-                            {/* Input Field: Duration Value */}
                             <div>
                                 <label className="block text-xs uppercase tracking-wider text-white/40 font-semibold mb-2 flex items-center gap-1">
                                     Duration (Hours)
@@ -167,7 +156,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 />
                             </div>
 
-                            {/* Dynamic Bill Calculation Info-Box */}
                             <div className="bg-[#031637] border border-white/5 rounded-2xl p-4 flex items-center justify-between mt-2">
                                 <span className="text-sm text-white/60">Calculated Booking Cost:</span>
                                 <span className="text-lg font-bold text-[#00D4FF] flex items-center gap-0.5">
@@ -175,7 +163,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 </span>
                             </div>
 
-                            {/* Actions Footer Container */}
                             <div className="flex gap-3 pt-2">
                                 <button
                                     type="button"

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const SignupPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -47,13 +48,11 @@ const SignupPage = () => {
         }
 
         try {
-            // ✅ This is where the fetch logic lives!
             const response = await fetch(`${serverUrl}/api/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Pass your destructured state values directly here:
                 body: JSON.stringify({
                     name: formData.name,
                     email: formData.email,
@@ -62,7 +61,6 @@ const SignupPage = () => {
                 }),
             });
 
-            // Catch HTML Error pages before they hit JSON.parse and trigger the Banner error
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
                 throw new Error(`Server configuration error (Status: ${response.status}). Please verify backend routing rules.`);
@@ -74,9 +72,9 @@ const SignupPage = () => {
                 throw new Error(result.message || "Registration failed");
             }
 
-            alert("✅ Account created successfully!");
+            alert("✅ Account created successfully! Please log in.");
             
-            router.push('/'); 
+            router.push('/login'); 
             router.refresh();
             
         } catch (err) {
@@ -213,9 +211,9 @@ const SignupPage = () => {
 
                 <p className="text-center text-white/50 text-sm mt-8">
                     Already have an account?{' '}
-                    <a href="/login" className="text-[#00D4FF] hover:underline font-medium">
+                    <Link href="/login" className="text-[#00D4FF] hover:underline font-medium">
                         Sign in
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>

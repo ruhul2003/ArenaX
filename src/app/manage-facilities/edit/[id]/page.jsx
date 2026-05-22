@@ -3,7 +3,6 @@
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Users, Calendar, Clock, ArrowLeft, Loader2, Save } from 'lucide-react';
-// 🛠️ FIXED: Corrected cross-directory import path using absolute Next.js alias mapping
 import BookButton from '@/app/components/BookButton';
 
 export default function EditFacilityPage({ params }) {
@@ -27,12 +26,10 @@ export default function EditFacilityPage({ params }) {
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-    // Fetch original facility data to populate the edit form inputs
     useEffect(() => {
         const fetchFacilityDetails = async () => {
             try {
                 setIsLoading(true);
-                // 🛠️ FIXED: Directed to singular /api/facility/:id endpoint matching backend configuration
                 const response = await fetch(`${serverUrl}/api/facility/${id}`, {
                     credentials: 'include'
                 });
@@ -73,7 +70,6 @@ export default function EditFacilityPage({ params }) {
         e.preventDefault();
         setIsSaving(true);
         try {
-            // 🛠️ FIXED: Changed update action to hit the singular route /api/facility/:id with PUT
             const response = await fetch(`${serverUrl}/api/facility/${id}`, {
                 method: 'PUT',
                 headers: {

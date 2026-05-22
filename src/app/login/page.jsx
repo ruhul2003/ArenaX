@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { FcGoogle } from "react-icons/fc"; // ➕ Imported matching registration views
+import { FcGoogle } from "react-icons/fc"; 
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +60,6 @@ const LoginPage = () => {
         }
     };
 
-    // ➕ New Direct Redirect Authentication trigger handler
     const handleGoogleSignIn = () => {
         window.location.href = `${serverUrl}/api/auth/google`;
     };
@@ -68,7 +67,6 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
             <div className="max-w-md w-full">
-                {/* Logo & Title */}
                 <div className="text-center mb-10">
                     <h1 className="text-4xl font-bold text-white tracking-tight">
                         Arena<span className="text-[#00D4FF]">X</span>
@@ -96,7 +94,6 @@ const LoginPage = () => {
                             />
                         </div>
 
-                        {/* Password Field */}
                         <div>
                             <label className="block text-white/80 text-sm font-medium mb-2">
                                 Password
@@ -123,14 +120,12 @@ const LoginPage = () => {
                             </div>
                         </div>
 
-                        {/* Error Message Module */}
                         {error && (
                             <p className="text-red-400 text-sm text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20 animate-in fade-in duration-200">
                                 {error}
                             </p>
                         )}
 
-                        {/* Submit Action */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -140,14 +135,12 @@ const LoginPage = () => {
                         </button>
                     </form>
 
-                    {/* ➕ Added Divider Layout element line */}
                     <div className="my-6 flex items-center gap-4">
                         <div className="h-px bg-white/10 flex-1"></div>
                         <span className="text-white/50 text-sm font-medium">OR</span>
                         <div className="h-px bg-white/10 flex-1"></div>
                     </div>
 
-                    {/* ➕ Added Google Authentication Trigger Button element */}
                     <button
                         onClick={handleGoogleSignIn}
                         disabled={loading}

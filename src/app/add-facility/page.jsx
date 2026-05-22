@@ -45,48 +45,56 @@ const AddFacilityPage = () => {
     };
 
     const handleSubmit = async (e) => {
-      e.preventDefault();
-      setLoading(true);
-      setError('');
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-      try {
-          const payload = {
-              name: formData.name,
-              facility_type: formData.facility_type,
-              location: formData.location,
-              price_per_hour: parseInt(formData.price_per_hour, 10), 
-              capacity: parseInt(formData.capacity, 10),
-              description: formData.description,
-              image: formData.image.trim(),                                                  
-              available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
-              booking_count: parseInt(formData.booking_count, 10) || 0 
-          };
+        try {
+            const payload = {
+                name: formData.name,
+                facility_type: formData.facility_type,
+                location: formData.location,
+                price_per_hour: parseInt(formData.price_per_hour, 10), 
+                capacity: parseInt(formData.capacity, 10),
+                description: formData.description,
+                rules: formData.rules.trim(), 
+                timings: {                    
+                    open: timings.openTime,
+                    close: timings.closeTime
+                },
+                image: formData.image.trim(),                                                  
+                available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
+                booking_count: parseInt(formData.booking_count, 10) || 0 
+            };
 
-          // Fallback to localhost if env isn't loaded
-          const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
-          
-          // ✅ FIXED: Points directly to your backend AND sends secure cross-origin authentication cookies
-          const response = await fetch(`${serverUrl}/facilities`, {
-              method: 'POST',
-              headers: { 
-                  'Content-Type': 'application/json' 
-              },
-              credentials: 'include', // 👈 CRITICAL: This passes the HTTP-only JWT login token to your server
-              body: JSON.stringify(payload)
-          });
+            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+            
+            const response = await fetch(`${serverUrl}/api/facilities`, { 
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
 
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.message || data.error || 'Failed to create facility');
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Server returned non-JSON error. Check if backend route endpoint matches completely.`);
+            }
 
-          setSuccess(true);
-          setTimeout(() => router.push('/all-facilities'), 2000);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || data.error || 'Failed to create facility');
 
-      } catch (err) {
-          setError(err.message || 'Something went wrong.');
-      } finally {
-          setLoading(false);
-      }
-  };
+            setSuccess(true);
+            setTimeout(() => router.push('/all-facilities'), 2000);
+
+        } catch (err) {
+            setError(err.message || 'Something went wrong.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#031637] text-white px-6 py-12 flex justify-center items-center">
@@ -153,8 +161,9 @@ const AddFacilityPage = () => {
                                 <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
                                     <MapPin size={18} /> Logistics, Capacity & Pricing
                                 </h3>
+                                
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <div className="lg:col-span-1">
+                                    <div className="lg:col-span-2 md:col-span-2">
                                         <label className="block text-white/80 text-sm font-medium mb-2">Location Address</label>
                                         <div className="relative">
                                             <input
