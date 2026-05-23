@@ -14,31 +14,45 @@ const NavBar = () => {
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-    useEffect(() => {
-        const fetchUserSession = async () => {
-            try {
-                const res = await fetch(`${serverUrl}/api/auth/me`, {
-                    method: 'GET',
-                    credentials: 'include',
-                });
+    const fetchUserSession = async () => {
+        try {
+            const res = await fetch(`${serverUrl}/api/auth/me`, {
+                method: 'GET',
+                credentials: 'include',
+                cache: 'no-store',           // Important for fresh check
+            });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    const resolvedUser = data.user || data;
-                    setUser(resolvedUser && (resolvedUser.email || resolvedUser.id) ? resolvedUser : null);
-                } else {
-                    setUser(null);
-                }
-            } catch (err) {
-                console.error("Session check failed:", err);
+            if (res.ok) {
+                const data = await res.json();
+                // Handle both possible response formats
+                const userData = data.user || data;
+                setUser(userData && (userData.email || userData._id || userData.id) ? userData : null);
+            } else {
                 setUser(null);
-            } finally {
-                setIsPending(false);
             }
-        };
+        } catch (err) {
+            console.error("Session check failed:", err);
+            setUser(null);
+        } finally {
+            setIsPending(false);
+        }
+    };
 
+    // Fetch on mount and when pathname changes
+    useEffect(() => {
         fetchUserSession();
-    }, [pathname, serverUrl]);
+    }, [pathname]);
+
+    // Extra check after Google login redirect
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isPending) {
+                fetchUserSession();
+            }
+        }, 800); // Small delay to let cookies settle
+
+        return () => clearTimeout(timer);
+    }, [pathname]);
 
     const isAuthenticated = !isPending && user !== null;
 
@@ -88,7 +102,7 @@ const NavBar = () => {
                     {/* Desktop Auth Section */}
                     <div className="hidden md:flex items-center gap-4">
                         {isPending ? (
-                            <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />
+                            <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
                         ) : user ? (
                             <UserProfileDropdown user={user} />
                         ) : (
