@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { FcGoogle } from "react-icons/fc"; 
+import { FcGoogle } from "react-icons/fc";
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [redirect, setRedirect] = useState('/all-facilities');
 
     const [formData, setFormData] = useState({
         email: '',
@@ -15,6 +16,34 @@ const LoginPage = () => {
     });
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+
+    // Read redirect URL from query parameter
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectParam = urlParams.get('redirect');
+        if (redirectParam) {
+            setRedirect(redirectParam);
+        }
+    }, []);
+
+    // Optional: Auto-redirect if user is already logged in
+    useEffect(() => {
+        const checkIfAlreadyLoggedIn = async () => {
+            try {
+                const res = await fetch(`${serverUrl}/api/auth/me`, {
+                    credentials: 'include',
+                });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    window.location.href = redirect;
+                }
+            } catch (err) {
+                // User is not logged in - do nothing
+            }
+        };
+
+        checkIfAlreadyLoggedIn();
+    }, [redirect, serverUrl]);
 
     const handleChange = (e) => {
         setError('');
@@ -49,7 +78,7 @@ const LoginPage = () => {
             }
 
             if (data.success) {
-                window.location.href = '/all-facilities';
+                window.location.href = redirect;
             }
 
         } catch (err) {
@@ -61,7 +90,8 @@ const LoginPage = () => {
     };
 
     const handleGoogleSignIn = () => {
-        window.location.href = `${serverUrl}/api/auth/google`;
+        const googleUrl = `${serverUrl}/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
+        window.location.href = googleUrl;
     };
 
     return (
@@ -94,6 +124,7 @@ const LoginPage = () => {
                             />
                         </div>
 
+                        {/* Password Field */}
                         <div>
                             <label className="block text-white/80 text-sm font-medium mb-2">
                                 Password

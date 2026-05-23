@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ const SignupPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [redirect, setRedirect] = useState('/all-facilities');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -20,6 +21,34 @@ const SignupPage = () => {
 
     const router = useRouter();
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+
+    // Read redirect URL from query parameter
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectParam = urlParams.get('redirect');
+        if (redirectParam) {
+            setRedirect(redirectParam);
+        }
+    }, []);
+
+    // Optional: Redirect if user is already logged in
+    useEffect(() => {
+        const checkIfAlreadyLoggedIn = async () => {
+            try {
+                const res = await fetch(`${serverUrl}/api/auth/me`, {
+                    credentials: 'include',
+                });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    window.location.href = redirect;
+                }
+            } catch (err) {
+                // User not logged in - continue with signup
+            }
+        };
+
+        checkIfAlreadyLoggedIn();
+    }, [redirect, serverUrl]);
 
     const handleChange = (e) => {
         setError('');
@@ -63,7 +92,7 @@ const SignupPage = () => {
 
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                throw new Error(`Server configuration error (Status: ${response.status}). Please verify backend routing rules.`);
+                throw new Error(`Server configuration error (Status: ${response.status}).`);
             }
 
             const result = await response.json();
@@ -72,10 +101,9 @@ const SignupPage = () => {
                 throw new Error(result.message || "Registration failed");
             }
 
+            // Success: Redirect to login with the intended destination
             alert("✅ Account created successfully! Please log in.");
-            
-            router.push('/login'); 
-            router.refresh();
+            router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
             
         } catch (err) {
             console.error("Signup Client Error:", err);
@@ -86,7 +114,8 @@ const SignupPage = () => {
     };
 
     const handleGoogleSignUp = () => {
-        window.location.href = `${serverUrl}/api/auth/google`;
+        const googleUrl = `${serverUrl}/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
+        window.location.href = googleUrl;
     };
 
     return (
