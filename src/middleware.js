@@ -16,19 +16,17 @@ export async function middleware(request) {
                 headers: {
                     'Cookie': cookieHeader,
                 },
-                credentials: 'include',   // Important for cookies
+                credentials: 'include',
             });
 
             const data = await authCheck.json();
 
-            // If backend says not authenticated
             if (!authCheck.ok || !data.success || !data.user) {
                 const loginUrl = new URL('/login', request.url);
                 return NextResponse.redirect(loginUrl);
             }
-
         } catch (error) {
-            console.error("Middleware auth check failed:", error);
+            console.error("Middleware auth error:", error);
             const loginUrl = new URL('/login', request.url);
             return NextResponse.redirect(loginUrl);
         }
@@ -39,8 +37,8 @@ export async function middleware(request) {
 
 export const config = {
     matcher: [
-        '/my-bookings/:path*', 
-        '/add-facility/:path*', 
+        '/my-bookings/:path*',
+        '/add-facility/:path*',
         '/manage-facilities/:path*'
     ],
 };
