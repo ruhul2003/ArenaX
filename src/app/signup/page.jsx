@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { FcGoogle } from "react-icons/fc";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -40,7 +39,9 @@ const SignupPage = () => {
         const hasLowercase = /[a-z]/.test(password);
 
         if (!hasMinLength || !hasUppercase || !hasLowercase) {
-            setError("Password must be at least 6 characters long and contain both uppercase and lowercase letters.");
+            setError(
+                "Password must be at least 6 characters long and contain both uppercase and lowercase letters."
+            );
             setLoading(false);
             return;
         }
@@ -48,7 +49,9 @@ const SignupPage = () => {
         try {
             const response = await fetch(`${serverUrl}/api/auth/signup`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     name: formData.name,
                     email: formData.email,
@@ -57,6 +60,11 @@ const SignupPage = () => {
                 }),
             });
 
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Server configuration error (Status: ${response.status}). Please verify backend routing rules.`);
+            }
+
             const result = await response.json();
 
             if (!response.ok) {
@@ -64,17 +72,16 @@ const SignupPage = () => {
             }
 
             alert("✅ Account created successfully! Please log in.");
-            router.push('/login');
+            
+            router.push('/login'); 
+            router.refresh();
+            
         } catch (err) {
             console.error("Signup Client Error:", err);
             setError(err.message || "Registration failed");
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleGoogleSignUp = () => {
-        window.location.href = `${serverUrl}/api/auth/google`;
     };
 
     return (
@@ -90,8 +97,11 @@ const SignupPage = () => {
                 <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10 shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Full Name */}
                             <div>
-                                <label className="block text-white/80 text-sm font-medium mb-2">Full Name</label>
+                                <label className="block text-white/80 text-sm font-medium mb-2">
+                                    Full Name
+                                </label>
                                 <input
                                     type="text"
                                     name="name"
@@ -103,8 +113,11 @@ const SignupPage = () => {
                                 />
                             </div>
 
+                            {/* Email Address */}
                             <div>
-                                <label className="block text-white/80 text-sm font-medium mb-2">Email Address</label>
+                                <label className="block text-white/80 text-sm font-medium mb-2">
+                                    Email Address
+                                </label>
                                 <input
                                     type="email"
                                     name="email"
@@ -116,8 +129,11 @@ const SignupPage = () => {
                                 />
                             </div>
 
+                            {/* Password */}
                             <div>
-                                <label className="block text-white/80 text-sm font-medium mb-2">Password</label>
+                                <label className="block text-white/80 text-sm font-medium mb-2">
+                                    Password
+                                </label>
                                 <div className="relative">
                                     <input
                                         type={showPassword ? "text" : "password"}
@@ -138,6 +154,7 @@ const SignupPage = () => {
                                 </div>
                             </div>
 
+                            {/* Profile Picture URL */}
                             <div>
                                 <label className="block text-white/80 text-sm font-medium mb-2">
                                     Profile Picture URL <span className="text-white/50 text-xs">(Optional)</span>
@@ -154,7 +171,7 @@ const SignupPage = () => {
                         </div>
 
                         {error && (
-                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20">
+                            <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-xl border border-red-500/20 px-4">
                                 {error}
                             </p>
                         )}
@@ -167,28 +184,13 @@ const SignupPage = () => {
                             {loading ? (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Creating Account...
+                                    <span>Creating Account...</span>
                                 </>
                             ) : (
                                 "Create Account"
                             )}
                         </button>
                     </form>
-
-                    <div className="my-8 flex items-center gap-4">
-                        <div className="h-px bg-white/10 flex-1"></div>
-                        <span className="text-white/50 text-sm font-medium">OR</span>
-                        <div className="h-px bg-white/10 flex-1"></div>
-                    </div>
-
-                    <button
-                        onClick={handleGoogleSignUp}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all"
-                    >
-                        <FcGoogle size={24} />
-                        Sign up with Google
-                    </button>
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
