@@ -62,7 +62,7 @@ const AddFacilityPage = () => {
                     open: timings.openTime,
                     close: timings.closeTime
                 },
-                image: formData.image.trim(),                                                  
+                image: formData.image.trim(),                                                 
                 available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
                 booking_count: parseInt(formData.booking_count, 10) || 0 
             };
@@ -74,13 +74,17 @@ const AddFacilityPage = () => {
                 headers: { 
                     'Content-Type': 'application/json' 
                 },
-                credentials: 'include',
+                credentials: 'include', // Kept this active as it is required to pass cross-domain cookies
                 body: JSON.stringify(payload)
             });
 
+            // Handling cases where backend crashes or returns HTML redirect pages (e.g., Vercel routing faults)
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                throw new Error(`Server returned non-JSON error. Check if backend route endpoint matches completely.`);
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error("Session expired or unauthorized. Please log out and sign back in.");
+                }
+                throw new Error(`Server configuration issue. Status returned: ${response.status}`);
             }
 
             const data = await response.json();
