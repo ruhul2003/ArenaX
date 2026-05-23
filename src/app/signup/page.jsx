@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { FcGoogle } from "react-icons/fc";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -85,10 +84,6 @@ const SignupPage = () => {
         }
     };
 
-    const handleGoogleSignUp = () => {
-        window.location.href = `${serverUrl}/api/auth/google`;
-    };
-
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
             <div className="max-w-xl w-full">
@@ -102,6 +97,7 @@ const SignupPage = () => {
                 <div className="bg-[#0A1F3D] rounded-3xl p-8 md:p-10 border border-white/10 shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Full Name */}
                             <div>
                                 <label className="block text-white/80 text-sm font-medium mb-2">
                                     Full Name
@@ -117,6 +113,7 @@ const SignupPage = () => {
                                 />
                             </div>
 
+                            {/* Email Address */}
                             <div>
                                 <label className="block text-white/80 text-sm font-medium mb-2">
                                     Email Address
@@ -132,6 +129,7 @@ const SignupPage = () => {
                                 />
                             </div>
 
+                            {/* Password */}
                             <div>
                                 <label className="block text-white/80 text-sm font-medium mb-2">
                                     Password
@@ -156,6 +154,7 @@ const SignupPage = () => {
                                 </div>
                             </div>
 
+                            {/* Profile Picture URL */}
                             <div>
                                 <label className="block text-white/80 text-sm font-medium mb-2">
                                     Profile Picture URL <span className="text-white/50 text-xs">(Optional)</span>
@@ -192,21 +191,6 @@ const SignupPage = () => {
                             )}
                         </button>
                     </form>
-
-                    <div className="my-8 flex items-center gap-4">
-                        <div className="h-px bg-white/10 flex-1"></div>
-                        <span className="text-white/50 text-sm font-medium">OR</span>
-                        <div className="h-px bg-white/10 flex-1"></div>
-                    </div>
-
-                    <button
-                        onClick={handleGoogleSignUp}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all"
-                    >
-                        <FcGoogle size={24} />
-                        Sign up with Google
-                    </button>
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">

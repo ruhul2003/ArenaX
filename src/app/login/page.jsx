@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { FcGoogle } from "react-icons/fc"; 
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -60,10 +59,6 @@ const LoginPage = () => {
         }
     };
 
-    const handleGoogleSignIn = () => {
-        window.location.href = `${serverUrl}/api/auth/google`;
-    };
-
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
             <div className="max-w-md w-full">
@@ -94,6 +89,7 @@ const LoginPage = () => {
                             />
                         </div>
 
+                        {/* Password Field */}
                         <div>
                             <label className="block text-white/80 text-sm font-medium mb-2">
                                 Password
@@ -121,7 +117,7 @@ const LoginPage = () => {
                         </div>
 
                         {error && (
-                            <p className="text-red-400 text-sm text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20 animate-in fade-in duration-200">
+                            <p className="text-red-400 text-sm text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20">
                                 {error}
                             </p>
                         )}
@@ -134,21 +130,6 @@ const LoginPage = () => {
                             {loading ? "Signing in..." : "Sign In"}
                         </button>
                     </form>
-
-                    <div className="my-6 flex items-center gap-4">
-                        <div className="h-px bg-white/10 flex-1"></div>
-                        <span className="text-white/50 text-sm font-medium">OR</span>
-                        <div className="h-px bg-white/10 flex-1"></div>
-                    </div>
-
-                    <button
-                        onClick={handleGoogleSignIn}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-70 text-black font-medium py-4 rounded-2xl transition-all"
-                    >
-                        <FcGoogle size={24} />
-                        Sign in with Google
-                    </button>
                 </div>
 
                 <p className="text-center text-white/50 text-sm mt-8">
