@@ -14,19 +14,18 @@ export async function middleware(request) {
             const authCheck = await fetch(`${serverUrl}/api/auth/me`, {
                 method: 'GET',
                 headers: {
-                    'Cookie': cookieHeader,
+                    'Cookie': cookieHeader,        // Pass cookies from client
                 },
-                credentials: 'include',   // Important for cookies
+                // Do NOT use credentials: 'include' here in middleware
             });
 
             const data = await authCheck.json();
 
-            // If backend says not authenticated
             if (!authCheck.ok || !data.success || !data.user) {
                 const loginUrl = new URL('/login', request.url);
+                loginUrl.searchParams.set('redirect', pathname); // Optional: remember where user wanted to go
                 return NextResponse.redirect(loginUrl);
             }
-
         } catch (error) {
             console.error("Middleware auth check failed:", error);
             const loginUrl = new URL('/login', request.url);
