@@ -62,7 +62,7 @@ const SignupPage = () => {
 
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                throw new Error(`Server configuration error (Status: ${response.status}). Please verify backend routing rules.`);
+                throw new Error(`Server configuration error (Status: ${response.status}).`);
             }
 
             const result = await response.json();
@@ -72,8 +72,7 @@ const SignupPage = () => {
             }
 
             alert("✅ Account created successfully! Please log in.");
-            
-            router.push('/login'); 
+            router.push('/login');
             router.refresh();
             
         } catch (err) {
