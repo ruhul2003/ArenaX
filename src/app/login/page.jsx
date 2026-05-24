@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-const LoginPage = () => {
+// Inner component that uses useSearchParams
+function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -47,7 +48,6 @@ const LoginPage = () => {
             }
 
             if (data.success) {
-                // Redirect to intended page or default
                 window.location.href = redirect;
             }
         } catch (err) {
@@ -131,6 +131,13 @@ const LoginPage = () => {
             </div>
         </div>
     );
-};
+}
 
-export default LoginPage;
+// Main exported component with Suspense wrapper
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#031637] flex items-center justify-center text-white">Loading...</div>}>
+            <LoginForm />
+        </Suspense>
+    );
+}

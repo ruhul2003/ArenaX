@@ -12,15 +12,12 @@ export async function middleware(request) {
         try {
             const authCheck = await fetch(`${serverUrl}/api/auth/me`, {
                 method: 'GET',
-                headers: {
-                    'Cookie': cookieHeader,
-                },
+                headers: { 'Cookie': cookieHeader },
             });
 
             const data = await authCheck.json().catch(() => ({}));
 
             if (!authCheck.ok || !data.success || !data.user) {
-                // Redirect to login with original destination
                 const loginUrl = new URL('/login', request.url);
                 loginUrl.searchParams.set('redirect', pathname);
                 return NextResponse.redirect(loginUrl);
