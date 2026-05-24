@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 export async function middleware(request) {
     const { pathname } = request.nextUrl;
-
     const protectedPaths = ['/my-bookings', '/add-facility', '/manage-facilities'];
     const isProtected = protectedPaths.some(path => pathname.startsWith(path));
 
@@ -14,21 +13,22 @@ export async function middleware(request) {
             const authCheck = await fetch(`${serverUrl}/api/auth/me`, {
                 method: 'GET',
                 headers: {
-                    'Cookie': cookieHeader,        // Pass cookies from client
+                    'Cookie': cookieHeader,
                 },
-                // Do NOT use credentials: 'include' here in middleware
             });
 
-            const data = await authCheck.json();
+            const data = await authCheck.json().catch(() => ({}));
 
             if (!authCheck.ok || !data.success || !data.user) {
+                // Redirect to login with original destination
                 const loginUrl = new URL('/login', request.url);
-                loginUrl.searchParams.set('redirect', pathname); // Optional: remember where user wanted to go
+                loginUrl.searchParams.set('redirect', pathname);
                 return NextResponse.redirect(loginUrl);
             }
         } catch (error) {
-            console.error("Middleware auth check failed:", error);
+            console.error("Middleware auth failed:", error);
             const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('redirect', pathname);
             return NextResponse.redirect(loginUrl);
         }
     }
@@ -38,8 +38,8 @@ export async function middleware(request) {
 
 export const config = {
     matcher: [
-        '/my-bookings/:path*', 
-        '/add-facility/:path*', 
+        '/my-bookings/:path*',
+        '/add-facility/:path*',
         '/manage-facilities/:path*'
     ],
 };
