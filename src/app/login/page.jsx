@@ -43,6 +43,12 @@ function LoginForm() {
 
             const data = await response.json();
 
+            // ==================== DEBUG LOGS ====================
+            console.log("🔍 Login Response Status:", response.status);
+            console.log("🔍 Login Response Data:", data);
+            console.log("🔍 Set-Cookie Header:", response.headers.get('set-cookie'));
+            // ===================================================
+
             if (!response.ok) {
                 throw new Error(data.message || "Invalid email or password");
             }
