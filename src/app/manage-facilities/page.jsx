@@ -1,32 +1,50 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trash2, Edit3, MapPin, Loader2, Plus, Users, Calendar } from 'lucide-react';
-import Link from 'next/link';
 import Image from 'next/image';
 
 const ManageMyFacilities = () => {
     const router = useRouter();
     const [facilities, setFacilities] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState(null);
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-    const fetchMyFacilities = async () => {
+    // Memoized fetch function
+    const fetchMyFacilities = useCallback(async () => {
         try {
-            const response = await fetch(`${serverUrl}/api/my-facilities`, { credentials: 'include' });
-            if (response.status === 401) return router.push('/login');
-            setFacilities(await response.json());
-        } catch (err) { 
-            console.error("Fetch error:", err); 
-        } finally { 
-            setIsLoading(false); 
+            setIsLoading(true);
+            const response = await fetch(`${serverUrl}/api/my-facilities`, { 
+                credentials: 'include',
+                cache: 'no-store'
+            });
+
+            if (response.status === 401) {
+                router.push('/login?redirect=/manage-facilities');
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch facilities');
+            }
+
+            const data = await response.json();
+            setFacilities(data);
+        } catch (err) {
+            console.error("Fetch error:", err);
+        } finally {
+            setIsLoading(false);
         }
-    };
+    }, [serverUrl, router]);
 
     const handleDelete = async (id, name) => {
         const confirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
         if (!confirmed) return;
+
+        setDeletingId(id);
 
         try {
             const response = await fetch(`${serverUrl}/api/facility/${id}`, {
@@ -34,22 +52,23 @@ const ManageMyFacilities = () => {
                 credentials: 'include'
             });
 
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Server did not return valid JSON data. Verify backend routing specifications.");
+            if (response.status === 401) {
+                router.push('/login');
+                return;
             }
 
-            const result = await response.json();
-
             if (!response.ok) {
-                throw new Error(result.message || "Failed to remove the facility listing.");
+                const result = await response.json().catch(() => ({}));
+                throw new Error(result.message || "Failed to delete facility");
             }
 
             alert("Facility successfully removed!");
             setFacilities(prev => prev.filter(item => item._id !== id));
         } catch (error) {
             console.error("Deletion error:", error);
-            alert(error.message);
+            alert(error.message || "Something went wrong");
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -63,9 +82,18 @@ const ManageMyFacilities = () => {
         });
     };
 
-    useEffect(() => { fetchMyFacilities(); }, []);
+    // Now clean useEffect
+    useEffect(() => {
+        fetchMyFacilities();
+    }, [fetchMyFacilities]);
 
-    if (isLoading) return <div className="min-h-screen bg-[#031637] flex items-center justify-center"><Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" /></div>;
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#031637] flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#031637] text-white py-12 px-6">
@@ -85,7 +113,7 @@ const ManageMyFacilities = () => {
                 
                 {facilities.length === 0 ? (
                     <div className="bg-[#0A1F3D] border border-white/10 rounded-3xl p-16 text-center">
-                        <p className="text-xl text-white/50">You haven't listed any facilities yet.</p>
+                        <p className="text-xl text-white/50">You have not listed any facilities yet.</p>
                     </div>
                 ) : (
                     <div className="bg-[#0A1F3D] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
@@ -116,7 +144,7 @@ const ManageMyFacilities = () => {
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-xs text-white/30 font-semibold uppercase bg-gradient-to-br from-white/5 to-white/10">
-                                                            {f.name.slice(0, 2)}
+                                                            {f.name?.slice(0, 2) || 'NA'}
                                                         </div>
                                                     )}
                                                 </div>
@@ -156,17 +184,21 @@ const ManageMyFacilities = () => {
                                         <td className="p-6 text-right space-x-2 whitespace-nowrap">
                                             <button 
                                                 onClick={() => router.push(`/manage-facilities/edit/${f._id}`)} 
-                                                className="p-2.5 bg-white/5 hover:bg-[#00D4FF] text-white/80 hover:text-[#031637] rounded-xl border border-white/5 transition"
-                                                title="Edit Listing"
+                                                disabled={deletingId === f._id}
+                                                className="p-2.5 bg-white/5 hover:bg-[#00D4FF] text-white/80 hover:text-[#031637] rounded-xl border border-white/5 transition disabled:opacity-50"
                                             >
                                                 <Edit3 size={16} />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(f._id, f.name)} 
-                                                className="p-2.5 bg-white/5 hover:bg-red-500/20 text-white/80 hover:text-red-400 rounded-xl border border-white/5 hover:border-red-500/40 transition"
-                                                title="Delete Listing"
+                                                disabled={deletingId === f._id}
+                                                className="p-2.5 bg-white/5 hover:bg-red-500/20 text-white/80 hover:text-red-400 rounded-xl border border-white/5 hover:border-red-500/40 transition disabled:opacity-50"
                                             >
-                                                <Trash2 size={16} />
+                                                {deletingId === f._id ? (
+                                                    <Loader2 size={16} className="animate-spin" />
+                                                ) : (
+                                                    <Trash2 size={16} />
+                                                )}
                                             </button>
                                         </td>
                                     </tr>

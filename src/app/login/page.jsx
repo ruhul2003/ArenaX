@@ -29,7 +29,7 @@ function LoginForm() {
         setLoading(true);
         setError('');
 
-        console.log("🚀 Login form submitted with data:", formData);
+        console.log("Login form submitted with data:", formData);
 
         try {
             const response = await fetch(`${serverUrl}/api/auth/login`, {
@@ -41,22 +41,22 @@ function LoginForm() {
                 body: JSON.stringify(formData),
             });
 
-            console.log("✅ Response Status:", response.status);
-            console.log("✅ Set-Cookie Header:", response.headers.get('set-cookie'));
+            console.log("Response Status:", response.status);
+            console.log("Set-Cookie Header:", response.headers.get('set-cookie'));
 
             const data = await response.json();
-            console.log("✅ Login Response Data:", data);
+            console.log("Login Response Data:", data);
 
             if (!response.ok) {
                 throw new Error(data.message || "Invalid email or password");
             }
 
             if (data.success) {
-                console.log("🎉 Login successful, redirecting to:", redirect);
+                console.log("Login successful, redirecting to:", redirect);
                 window.location.href = redirect;
             }
         } catch (err) {
-            console.error("❌ Login error:", err);
+            console.error("Login error:", err);
             setError(err.message || "Invalid email or password");
         } finally {
             setLoading(false);
