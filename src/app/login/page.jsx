@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, Suspense } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -6,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -14,53 +14,23 @@ function LoginForm() {
 
     const searchParams = useSearchParams();
     const redirect = searchParams.get('redirect') || '/all-facilities';
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
     const handleChange = (e) => {
-        setError('');
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault(); 
         setLoading(true);
-        setError('');
 
-        console.log("Login form submitted with data:", formData);
-
-        try {
-            const response = await fetch(`${serverUrl}/api/auth/login`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData),
-            });
-
-            console.log("Response Status:", response.status);
-            console.log("Set-Cookie Header:", response.headers.get('set-cookie'));
-
-            const data = await response.json();
-            console.log("Login Response Data:", data);
-
-            if (!response.ok) {
-                throw new Error(data.message || "Invalid email or password");
-            }
-
-            if (data.success) {
-                console.log("Login successful, redirecting to:", redirect);
-                window.location.href = redirect;
-            }
-        } catch (err) {
-            console.error("Login error:", err);
-            setError(err.message || "Invalid email or password");
-        } finally {
-            setLoading(false);
-        }
+        console.log("Mocking login client behavior with payload data:", formData);
+        console.log("Redirecting user directly to:", redirect);
+        
+        // Simulating immediate client transition without handling cookies or tokens
+        window.location.href = redirect;
     };
 
     return (
@@ -112,12 +82,6 @@ function LoginForm() {
                                 </button>
                             </div>
                         </div>
-
-                        {error && (
-                            <p className="text-red-400 text-sm text-center bg-red-500/10 py-3 px-4 rounded-xl border border-red-500/20">
-                                {error}
-                            </p>
-                        )}
 
                         <button
                             type="submit"

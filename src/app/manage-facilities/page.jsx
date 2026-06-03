@@ -18,14 +18,8 @@ const ManageMyFacilities = () => {
         try {
             setIsLoading(true);
             const response = await fetch(`${serverUrl}/api/my-facilities`, { 
-                credentials: 'include',
                 cache: 'no-store'
             });
-
-            if (response.status === 401) {
-                router.push('/login?redirect=/manage-facilities');
-                return;
-            }
 
             if (!response.ok) {
                 throw new Error('Failed to fetch facilities');
@@ -38,7 +32,7 @@ const ManageMyFacilities = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [serverUrl, router]);
+    }, [serverUrl]);
 
     const handleDelete = async (id, name) => {
         const confirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
@@ -48,14 +42,8 @@ const ManageMyFacilities = () => {
 
         try {
             const response = await fetch(`${serverUrl}/api/facility/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
+                method: 'DELETE'
             });
-
-            if (response.status === 401) {
-                router.push('/login');
-                return;
-            }
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));
@@ -82,7 +70,6 @@ const ManageMyFacilities = () => {
         });
     };
 
-    // Now clean useEffect
     useEffect(() => {
         fetchMyFacilities();
     }, [fetchMyFacilities]);

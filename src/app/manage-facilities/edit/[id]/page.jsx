@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Users, Calendar, Clock, ArrowLeft, Loader2, Save } from 'lucide-react';
-import BookButton from '@/app/components/BookButton';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 
 export default function EditFacilityPage({ params }) {
     const resolvedParams = use(params);
@@ -30,9 +29,7 @@ export default function EditFacilityPage({ params }) {
         const fetchFacilityDetails = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`${serverUrl}/api/facility/${id}`, {
-                    credentials: 'include'
-                });
+                const response = await fetch(`${serverUrl}/api/facility/${id}`);
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch facility data.');
@@ -75,7 +72,6 @@ export default function EditFacilityPage({ params }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
                 body: JSON.stringify(formData),
             });
 

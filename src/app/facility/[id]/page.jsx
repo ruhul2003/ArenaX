@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Star, MapPin, Users, ShieldCheck, Loader2, AlertCircle } from 'lucide-react';
@@ -9,12 +9,10 @@ import BookButton from '../../components/BookButton';
 
 const FacilityDetails = () => {
     const { id } = useParams();
-    const router = useRouter();
     
     const [facility, setFacility] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
@@ -23,13 +21,6 @@ const FacilityDetails = () => {
 
         const initializePageState = async () => {
             try {
-                const sessionRes = await fetch(`${serverUrl}/api/auth/me`, {
-                    method: 'GET',
-                    credentials: 'include', 
-                });
-                
-                setIsAuthenticated(sessionRes.ok);
-
                 const facilityRes = await fetch(`${serverUrl}/api/facility/${id}`);
                 
                 const contentType = facilityRes.headers.get("content-type");
@@ -53,10 +44,6 @@ const FacilityDetails = () => {
 
         initializePageState();
     }, [id, serverUrl]);
-
-    const handleUnauthorizedActionClick = () => {
-        router.push(`/login?redirect=/facility/${id}`);
-    };
 
     if (isLoading) {
         return (
@@ -137,20 +124,11 @@ const FacilityDetails = () => {
                                 </p>
                             </div>
 
-                            {isAuthenticated ? (
-                                <BookButton 
-                                    facilityId={facility._id} 
-                                    facilityName={facility.name} 
-                                    hourlyRate={facility.price_per_hour} 
-                                />
-                            ) : (
-                                <button
-                                    onClick={handleUnauthorizedActionClick}
-                                    className="w-full bg-gradient-to-r from-[#00D4FF] to-[#00A4E0] text-[#031637] font-bold py-4 rounded-2xl text-lg transition-all duration-300 shadow-lg hover:shadow-[#00D4FF]/20 hover:opacity-90 active:scale-[0.98]"
-                                >
-                                    Sign In to Book Arena
-                                </button>
-                            )}
+                            <BookButton 
+                                facilityId={facility._id} 
+                                facilityName={facility.name} 
+                                hourlyRate={facility.price_per_hour} 
+                            />
                         </div>
 
                         <div className="bg-[#0A1F3D] p-6 rounded-3xl border border-white/5 flex items-start gap-4">

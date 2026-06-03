@@ -22,16 +22,10 @@ export default function MyBookingsPage() {
             
             const response = await fetch(`${serverUrl}/api/my-bookings`, {
                 method: 'GET',
-                credentials: 'include', 
                 headers: { 
                     'Content-Type': 'application/json'
                 }
             });
-            
-            if (response.status === 401) {
-                router.push('/login');
-                return;
-            }
 
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
@@ -54,7 +48,6 @@ export default function MyBookingsPage() {
 
             const response = await fetch(`${serverUrl}/api/bookings/${bookingId}/cancel`, {
                 method: 'PATCH',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
                 }
