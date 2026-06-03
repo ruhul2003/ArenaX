@@ -7,10 +7,8 @@ import { Loader2, CalendarCheck, X, Calendar, Clock, DollarSign } from 'lucide-r
 export default function BookButton({ facilityId, hourlyRate, facilityName }) {
     const router = useRouter();
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
-
     const [isOpen, setIsOpen] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
-
     const [bookingDate, setBookingDate] = useState('');
     const [timeSlot, setTimeSlot] = useState('');
     const [hours, setHours] = useState(1);
@@ -30,7 +28,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
-
         if (!bookingDate || !timeSlot || hours <= 0) {
             alert('Please fill out all required fields before completing your reservation.');
             return;
@@ -47,7 +44,7 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                 totalBill: totalBill
             };
 
-            console.log("Sending verified payload structure to backend:", payload);
+            console.log("Sending payload structure to backend:", payload);
 
             const response = await fetch(`${serverUrl}/api/booking`, {
                 method: 'POST',
@@ -55,7 +52,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-                credentials: 'include', 
             });
 
             const contentType = response.headers.get("content-type");
@@ -64,7 +60,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
             }
 
             const data = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.message || 'Something went wrong processing your booking request.');
             }
@@ -73,7 +68,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
             setIsOpen(false); 
             router.push('/my-bookings');
             router.refresh();
-
         } catch (err) {
             console.error("Booking submission error:", err);
             alert(err.message);
@@ -88,36 +82,37 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                 onClick={() => setIsOpen(true)}
                 className="w-full bg-[#00D4FF] hover:bg-[#00b2d6] text-[#031637] py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg active:scale-[0.98]"
             >
-                <CalendarCheck size={18} />
-                <span>Reserve This Venue Now</span>
+                <CalendarCheck className="w-5 h-5" />
+                Reserve This Venue Now
             </button>
 
             {isOpen && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all animate-fadeIn">
-                    <div className="bg-[#0A1F3D] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl relative text-white animate-scaleUp">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-[#020c24] border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
                         
                         {/* Close Icon Button */}
-                        <button 
+                        <button
                             onClick={() => setIsOpen(false)}
                             className="absolute top-4 right-4 text-white/40 hover:text-white transition"
                         >
-                            <X size={20} />
+                            <X className="w-5 h-5" />
                         </button>
 
-                        <h3 className="text-xl font-bold mb-1 flex items-center gap-2 text-[#00D4FF]">
-                            <CalendarCheck size={22} /> Venue Reservation Form
-                        </h3>
-                        <p className="text-sm text-white/60 mb-6">Specify your playing times below to check database availability.</p>
+                        <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-1">
+                            Venue Reservation Form
+                        </h2>
+                        <p className="text-xs text-white/60 mb-6">
+                            Specify your playing times below to check database availability.
+                        </p>
 
-                        <form onSubmit={handleFormSubmit} className="space-y-5">
+                        <form onSubmit={handleFormSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-xs uppercase tracking-wider text-white/40 font-semibold mb-2 flex items-center gap-1">
-                                    <Calendar size={12} /> Select Date
+                                <label className="block text-xs font-semibold text-white/70 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-[#00D4FF]" /> Select Date
                                 </label>
-                                <input 
-                                    type="date" 
+                                <input
+                                    type="date"
                                     required
-                                    min={new Date().toISOString().split('T')[0]} // Block historical past selections
                                     value={bookingDate}
                                     onChange={(e) => setBookingDate(e.target.value)}
                                     className="w-full bg-[#031637] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00D4FF] transition"
@@ -125,8 +120,8 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                             </div>
 
                             <div>
-                                <label className="block text-xs uppercase tracking-wider text-white/40 font-semibold mb-2 flex items-center gap-1">
-                                    <Clock size={12} /> Desired Time Slot
+                                <label className="block text-xs font-semibold text-white/70 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-[#00D4FF]" /> Desired Time Slot
                                 </label>
                                 <select
                                     required
@@ -136,31 +131,32 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 >
                                     <option value="" disabled hidden>Choose an active slot...</option>
                                     {availableSlots.map((slot, index) => (
-                                        <option key={index} value={slot} className="bg-[#0A1F3D]">{slot}</option>
+                                        <option key={index} value={slot} className="bg-[#031637]">
+                                            {slot}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-xs uppercase tracking-wider text-white/40 font-semibold mb-2 flex items-center gap-1">
-                                    Duration (Hours)
+                                <label className="block text-xs font-semibold text-white/70 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-[#00D4FF]" /> Duration (Hours)
                                 </label>
-                                <input 
-                                    type="number" 
-                                    required
+                                <input
+                                    type="number"
                                     min="1"
-                                    max="12"
+                                    required
                                     value={hours}
                                     onChange={(e) => setHours(Math.max(1, parseInt(e.target.value, 10) || 1))}
                                     className="w-full bg-[#031637] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00D4FF] transition"
                                 />
                             </div>
 
-                            <div className="bg-[#031637] border border-white/5 rounded-2xl p-4 flex items-center justify-between mt-2">
-                                <span className="text-sm text-white/60">Calculated Booking Cost:</span>
-                                <span className="text-lg font-bold text-[#00D4FF] flex items-center gap-0.5">
+                            <div className="bg-[#031637]/50 border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                                <span className="text-sm text-white/70 font-medium">Calculated Booking Cost:</span>
+                                <div className="text-xl font-bold text-[#00D4FF] flex items-center gap-0.5">
                                     ৳ {totalBill}
-                                </span>
+                                </div>
                             </div>
 
                             <div className="flex gap-3 pt-2">
@@ -174,11 +170,11 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 <button
                                     type="submit"
                                     disabled={isBooking}
-                                    className="flex-1 bg-[#00D4FF] hover:bg-[#00b2d6] text-[#031637] font-bold py-3.5 rounded-xl transition text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="flex-1 bg-[#00D4FF] hover:bg-[#00b2d6] text-[#031637] font-bold py-3.5 rounded-xl transition text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isBooking ? (
                                         <>
-                                            <Loader2 size={16} className="animate-spin" /> Logging...
+                                            <Loader2 className="w-4 h-4 animate-spin" /> Logging...
                                         </>
                                     ) : (
                                         "Confirm & Pay"

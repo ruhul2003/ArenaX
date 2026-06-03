@@ -19,26 +19,9 @@ const UserProfileDropdown = ({ user }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
-            
-            const response = await fetch(`${serverUrl}/api/auth/logout`, {
-                method: 'POST',
-                credentials: 'include', 
-            });
-
-            const data = await response.json();
-
-            if (data.success || response.ok) {
-                setIsOpen(false);
-                window.location.href = '/login';
-            } else {
-                console.error("Logout dropped from server response:", data.message);
-            }
-        } catch (error) {
-            console.error("Logout failed network request:", error);
-        }
+    const handleLogout = () => {
+        setIsOpen(false);
+        window.location.href = '/login';
     };
 
     const userInitials = user?.name 

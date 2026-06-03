@@ -11,14 +11,13 @@ const AllFacilities = () => {
     useEffect(() => {
         const fetchFacilities = async () => {
             try {
-                // ✅ FIXED: Fallback URL string + added missing /api prefix matching backend endpoints
                 const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
                 const res = await fetch(`${baseUrl}/api/facilities`);
-                
-                // Fail-safe protection check: ensure the response is actually JSON before parsing
+
+                // Safety check for JSON response
                 const contentType = res.headers.get("content-type");
                 if (!contentType || !contentType.includes("application/json")) {
-                    console.error("❌ Expected JSON from backend, but received HTML structure instead.");
+                    console.error("❌ Expected JSON response, but received non-JSON content.");
                     setFacilities([]);
                     return;
                 }
@@ -31,6 +30,7 @@ const AllFacilities = () => {
                 setFacilities(data);
             } catch (error) {
                 console.error('Error fetching facilities:', error);
+                setFacilities([]);
             } finally {
                 setLoading(false);
             }

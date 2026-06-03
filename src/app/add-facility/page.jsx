@@ -74,17 +74,12 @@ const AddFacilityPage = () => {
                 headers: { 
                     'Content-Type': 'application/json' 
                 },
-                credentials: 'include', // Kept this active as it is required to pass cross-domain cookies
                 body: JSON.stringify(payload)
             });
 
-            // Handling cases where backend crashes or returns HTML redirect pages (e.g., Vercel routing faults)
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                if (response.status === 401 || response.status === 403) {
-                    throw new Error("Session expired or unauthorized. Please log out and sign back in.");
-                }
-                throw new Error(`Server configuration issue. Status returned: ${response.status}`);
+                throw new Error(`Server error. Status: ${response.status}`);
             }
 
             const data = await response.json();
@@ -262,17 +257,15 @@ const AddFacilityPage = () => {
                                 </h3>
                                 <p className="text-xs text-white/50 mb-3">Provide a hosted image link showing your arena or court turf layout.</p>
 
-                                <div className="flex gap-3">
-                                    <input
-                                        type="url"
-                                        name="image"
-                                        value={formData.image}
-                                        required
-                                        onChange={handleChange}
-                                        placeholder="https://images.unsplash.com/your-photo-path.jpg"
-                                        className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
-                                    />
-                                </div>
+                                <input
+                                    type="url"
+                                    name="image"
+                                    value={formData.image}
+                                    required
+                                    onChange={handleChange}
+                                    placeholder="https://images.unsplash.com/your-photo-path.jpg"
+                                    className="w-full px-5 py-4 bg-[#031637] border border-white/10 rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-[#00D4FF] transition"
+                                />
                             </div>
 
                             <div>
