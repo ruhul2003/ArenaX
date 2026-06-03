@@ -1,15 +1,12 @@
 'use client';
-
 import React, { useState, Suspense } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-// Inner component that uses useSearchParams
 function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -17,7 +14,6 @@ function LoginForm() {
 
     const searchParams = useSearchParams();
     const redirect = searchParams.get('redirect') || '/all-facilities';
-
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
     const handleChange = (e) => {
@@ -29,43 +25,43 @@ function LoginForm() {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();   // এটা খুব জরুরি
-    setLoading(true);
-    setError('');
+        e.preventDefault(); 
+        setLoading(true);
+        setError('');
 
-    console.log("🚀 Login form submitted with data:", formData); // Debug
+        console.log("🚀 Login form submitted with data:", formData);
 
-    try {
-        const response = await fetch(`${serverUrl}/api/auth/login`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json' 
-            },
-            credentials: 'include',
-            body: JSON.stringify(formData),
-        });
+        try {
+            const response = await fetch(`${serverUrl}/api/auth/login`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData),
+            });
 
-        console.log("✅ Response Status:", response.status);
-        console.log("✅ Set-Cookie Header:", response.headers.get('set-cookie'));
+            console.log("✅ Response Status:", response.status);
+            console.log("✅ Set-Cookie Header:", response.headers.get('set-cookie'));
 
-        const data = await response.json();
-        console.log("✅ Login Response Data:", data);
+            const data = await response.json();
+            console.log("✅ Login Response Data:", data);
 
-        if (!response.ok) {
-            throw new Error(data.message || "Invalid email or password");
+            if (!response.ok) {
+                throw new Error(data.message || "Invalid email or password");
+            }
+
+            if (data.success) {
+                console.log("🎉 Login successful, redirecting to:", redirect);
+                window.location.href = redirect;
+            }
+        } catch (err) {
+            console.error("❌ Login error:", err);
+            setError(err.message || "Invalid email or password");
+        } finally {
+            setLoading(false);
         }
-
-        if (data.success) {
-            console.log("🎉 Login successful, redirecting to:", redirect);
-            window.location.href = redirect;
-        }
-    } catch (err) {
-        console.error("❌ Login error:", err);
-        setError(err.message || "Invalid email or password");
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     return (
         <div className="min-h-screen bg-[#031637] flex items-center justify-center px-6 py-12">
@@ -142,7 +138,6 @@ function LoginForm() {
     );
 }
 
-// Main exported component with Suspense wrapper
 export default function LoginPage() {
     return (
         <Suspense fallback={<div className="min-h-screen bg-[#031637] flex items-center justify-center text-white">Loading...</div>}>
