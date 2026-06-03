@@ -28,6 +28,22 @@ const NavBar = () => {
                                 All Facilities
                             </Link>
                         </li>
+
+                                <li>
+                                    <Link href="/my-bookings" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        My Bookings
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/add-facility" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        Add Facility
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/manage-facilities" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        Manage My Facilities
+                                    </Link>
+                                </li>
                     </ul>
 
                     {/* Desktop Actions Section */}
@@ -65,6 +81,21 @@ const NavBar = () => {
                                     All Facilities
                                 </Link>
                             </li>
+                                <li>
+                                    <Link href="/my-bookings" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        My Bookings
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/add-facility" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        Add Facility
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/manage-facilities" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                                        Manage My Facilities
+                                    </Link>
+                                </li>
                         </ul>
 
                         <div className="mt-6 pt-6 border-t border-white/10">
