@@ -9,14 +9,20 @@ import {
     Clock,
     FileText,
     CheckCircle,
-    Hash
+    Hash,
+    AlertTriangle
 } from 'lucide-react';
+import { authClient } from "@/lib/auth-client"; // Ensure this matches your project layout path
 
 const AddFacilityPage = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+
+    // Retrieve active user authentication session context
+    const { data: session } = authClient.useSession();
+    const user = session?.user;
 
     // Form states
     const [formData, setFormData] = useState({
@@ -46,6 +52,13 @@ const AddFacilityPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Prevent submissions if user data hasn't structuralized yet
+        if (!user || !user.email) {
+            setError('You must be logged in to create a facility layout.');
+            return;
+        }
+
         setLoading(true);
         setError('');
 
@@ -64,7 +77,10 @@ const AddFacilityPage = () => {
                 },
                 image: formData.image.trim(),                                                 
                 available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
-                booking_count: parseInt(formData.booking_count, 10) || 0 
+                booking_count: parseInt(formData.booking_count, 10) || 0,
+                
+                // FIXED 🔑: Changed key from 'owner' to 'owner_email' to match backend mongo query filter requirements
+                owner_email: user.email 
             };
 
             const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
@@ -86,7 +102,7 @@ const AddFacilityPage = () => {
             if (!response.ok) throw new Error(data.message || data.error || 'Failed to create facility');
 
             setSuccess(true);
-            setTimeout(() => router.push('/all-facilities'), 2000);
+            setTimeout(() => router.push('/manage-facilities'), 2000); // Redirects straight to your dashboard row
 
         } catch (err) {
             setError(err.message || 'Something went wrong.');
@@ -94,6 +110,25 @@ const AddFacilityPage = () => {
             setLoading(false);
         }
     };
+
+    // Block page layout interactives if an active profile footprint isn't detected
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#031637] text-white px-6 py-12 flex flex-col justify-center items-center gap-4">
+                <AlertTriangle size={48} className="text-amber-400 animate-pulse" />
+                <h1 className="text-2xl font-bold tracking-tight">Access Denied</h1>
+                <p className="text-white/60 text-center max-w-sm">
+                    Please log into your partner organizer account to register custom facility listings.
+                </p>
+                <button 
+                    onClick={() => router.push('/')} 
+                    className="mt-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl transition font-medium text-sm"
+                >
+                    Return Home
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#031637] text-white px-6 py-12 flex justify-center items-center">
@@ -116,7 +151,7 @@ const AddFacilityPage = () => {
                         <div className="py-16 flex flex-col items-center justify-center space-y-4 animate-fade-in">
                             <CheckCircle size={80} className="text-[#00D4FF] animate-bounce" />
                             <h2 className="text-2xl font-bold">Facility Listed Successfully!</h2>
-                            <p className="text-white/60 text-center">Redirecting you to the facilities board...</p>
+                            <p className="text-white/60 text-center">Redirecting you to your facilities dashboard...</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-8">
@@ -219,34 +254,6 @@ const AddFacilityPage = () => {
                                             />
                                             <Hash size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-semibold text-[#00D4FF] mb-4 flex items-center gap-2">
-                                    <Clock size={18} /> Operational Hours
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#031637] p-6 rounded-2xl border border-white/5">
-                                    <div>
-                                        <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wider">Opening Time</label>
-                                        <input
-                                            type="time"
-                                            value={timings.openTime}
-                                            onChange={(e) => setTimings({ ...timings, openTime: e.target.value })}
-                                            className="w-full px-5 py-3 bg-[#0A1F3D] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00D4FF] transition"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-white/60 text-xs font-medium mb-2 uppercase tracking-wider">Closing Time</label>
-                                        <input
-                                            type="time"
-                                            value={timings.closeTime}
-                                            onChange={(e) => setTimings({ ...timings, closeTime: e.target.value })}
-                                            className="w-full px-5 py-3 bg-[#0A1F3D] border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00D4FF] transition"
-                                            required
-                                        />
                                     </div>
                                 </div>
                             </div>

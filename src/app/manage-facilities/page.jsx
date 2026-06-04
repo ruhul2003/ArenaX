@@ -2,37 +2,75 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Edit3, MapPin, Loader2, Plus, Users, Calendar } from 'lucide-react';
+import { Trash2, Edit3, MapPin, Loader2, Plus, Users, Calendar, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
+import { authClient } from "@/lib/auth-client"; 
 
 const ManageMyFacilities = () => {
     const router = useRouter();
     const [facilities, setFacilities] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingData, setIsLoadingData] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+    const [error, setError] = useState(null);
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-    // Memoized fetch function
+    // Retrieve auth session state directly from authClient
+    const { data: session, isPending: isAuthLoading } = authClient.useSession();
+    const user = session?.user;
+
+    // Memoized fetch function passing down the owner email parameter
     const fetchMyFacilities = useCallback(async () => {
+        // ইমেইল বা ইউজার অবজেক্ট পুরোপুরি লোড না হওয়া পর্যন্ত রিকোয়েস্ট ব্লক করে রাখা হলো
+        if (!user || !user?.email) return;
+
         try {
-            setIsLoading(true);
-            const response = await fetch(`${serverUrl}/api/my-facilities`, { 
+            setIsLoadingData(true);
+            setError(null);
+            
+            // ইমেইল স্ট্রিংটিকে ব্যাকএন্ডের জন্য নরমাল ফরম্যাটে পাঠাতে সরাসরি পাস করা হলো
+            const targetUrl = `${serverUrl}/api/my-facilities?email=${user.email}`;
+            
+            const response = await fetch(targetUrl, { 
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 cache: 'no-store'
             });
 
             if (!response.ok) {
-                throw new Error('Failed to fetch facilities');
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to fetch facilities');
             }
 
             const data = await response.json();
-            setFacilities(data);
+            
+            // Handle wrapper payloads gracefully if present
+            const resolvedData = data.data !== undefined ? data.data : data;
+            setFacilities(Array.isArray(resolvedData) ? resolvedData : []);
         } catch (err) {
             console.error("Fetch error:", err);
+            setError(err.message);
+            setFacilities([]);
         } finally {
-            setIsLoading(false);
+            setIsLoadingData(false);
         }
-    }, [serverUrl]);
+    }, [serverUrl, user]); // dependency তে পুরো user অবজেক্ট ট্র্যাক করা হলো
+
+    // Triggers cleanly whenever the authenticated user state changes
+    useEffect(() => {
+        let isMounted = true;
+
+        if (user?.email && isMounted) {
+            fetchMyFacilities();
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.email, fetchMyFacilities]);
 
     const handleDelete = async (id, name) => {
         const confirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
@@ -70,14 +108,22 @@ const ManageMyFacilities = () => {
         });
     };
 
-    useEffect(() => {
-        fetchMyFacilities();
-    }, [fetchMyFacilities]);
-
-    if (isLoading) {
+    // 1. Render global spinner ONLY while authentication status is actively verifying
+    if (isAuthLoading) {
         return (
             <div className="min-h-screen bg-[#031637] flex items-center justify-center">
                 <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
+            </div>
+        );
+    }
+
+    // 2. Safely block anonymous access after verification complete
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#031637] text-slate-200 py-16 px-6 flex flex-col items-center justify-center gap-4">
+                <AlertTriangle size={40} className="text-amber-400" />
+                <h1 className="text-2xl font-bold">Authentication Required</h1>
+                <p className="text-white/60">Please sign in to view your personalized facility dashboard tracking records.</p>
             </div>
         );
     }
@@ -97,8 +143,21 @@ const ManageMyFacilities = () => {
                         <Plus size={20} /> Add New Facility
                     </button>
                 </div>
+
+                {error && (
+                    <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-2">
+                        <AlertTriangle size={16} className="text-rose-400 flex-shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
                 
-                {facilities.length === 0 ? (
+                {/* 3. Render contextual table loaders distinctly from authorization checks */}
+                {isLoadingData ? (
+                    <div className="bg-[#0A1F3D] border border-white/10 rounded-3xl p-16 flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="w-8 h-8 text-[#00D4FF] animate-spin" />
+                        <p className="text-white/50 text-sm">Retrieving listed items...</p>
+                    </div>
+                ) : facilities.length === 0 ? (
                     <div className="bg-[#0A1F3D] border border-white/10 rounded-3xl p-16 text-center">
                         <p className="text-xl text-white/50">You have not listed any facilities yet.</p>
                     </div>
@@ -127,7 +186,7 @@ const ManageMyFacilities = () => {
                                                             alt={f.name} 
                                                             fill
                                                             className="w-full h-full object-cover"
-                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                            sizes="64px"
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-xs text-white/30 font-semibold uppercase bg-gradient-to-br from-white/5 to-white/10">
@@ -146,7 +205,7 @@ const ManageMyFacilities = () => {
                                         
                                         <td className="p-6">
                                             <span className="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-sm font-medium tracking-wide">
-                                                {f.facility_type || 'Sports'}
+                                                {f.facility_type || f.facilityType || 'Sports'}
                                             </span>
                                         </td>
                                         
@@ -158,13 +217,13 @@ const ManageMyFacilities = () => {
                                         </td>
                                         
                                         <td className="p-6 font-bold text-[#00D4FF] text-lg">
-                                            ৳{f.price_per_hour}
+                                            ৳{f.price_per_hour || f.pricePerHour}
                                         </td>
 
                                         <td className="p-6 text-white/70">
                                             <div className="flex items-center gap-2 text-sm">
                                                 <Calendar size={14} className="text-white/30" />
-                                                <span>{formatDate(f.createdAt)}</span>
+                                                <span>{formatDate(f.createdAt || f.date)}</span>
                                             </div>
                                         </td>
                                         
