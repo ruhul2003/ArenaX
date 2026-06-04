@@ -5,6 +5,15 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Clock, ArrowLeft, Loader2, ShieldCheck, CreditCard, Tag, MapPin, XCircle, AlertTriangle } from 'lucide-react';
+import { authClient } from "@/lib/auth-client";
+
+// Helper function to handle badge style mappings based on DB status fields
+const getStatusTheme = (status) => {
+    const s = status?.toLowerCase();
+    if (s === 'confirmed' || s === 'approved' || s === 'paid') return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+    if (s === 'cancelled' || s === 'failed') return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
+    return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
+};
 
 export default function MyBookingsPage() {
     const router = useRouter();
@@ -15,12 +24,17 @@ export default function MyBookingsPage() {
     const [confirmCancelId, setConfirmCancelId] = useState(null); 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
+    const { data: session } = authClient.useSession();
+    const user = session?.user;
+
     const fetchMyBookings = async () => {
+        if (!user || !user.email) return;
+
         try {
             setIsLoading(true);
             setError(null);
             
-            const response = await fetch(`${serverUrl}/api/my-bookings`, {
+            const response = await fetch(`${serverUrl}/api/my-bookings?email=${encodeURIComponent(user.email)}`, {
                 method: 'GET',
                 headers: { 
                     'Content-Type': 'application/json'
@@ -33,9 +47,16 @@ export default function MyBookingsPage() {
             }
             
             const data = await response.json();
-            setBookings(data.data || data || []);
+
+            if (!response.ok) {
+                throw new Error(data.message || "Could not retrieve user reservations from DB.");
+            }
+            
+            const actualBookings = data.data || data;
+            setBookings(Array.isArray(actualBookings) ? actualBookings : []);
         } catch (err) {
             setError(err.message);
+            setBookings([]);
         } finally {
             setIsLoading(false);
         }
@@ -72,21 +93,28 @@ export default function MyBookingsPage() {
     };
 
     useEffect(() => { 
-        fetchMyBookings(); 
-    }, []);
+        if (user?.email) {
+            fetchMyBookings(); 
+        }
+    }, [user?.email]);
 
-    const getStatusTheme = (status) => {
-        const s = status?.toLowerCase();
-        if (s === 'confirmed' || s === 'approved' || s === 'paid') return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-        if (s === 'cancelled' || s === 'failed') return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
-        return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-    };
+    if (isLoading && !user) {
+        return (
+            <div className="min-h-screen bg-[#031637] flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
+            </div>
+        );
+    }
 
-    if (isLoading) return (
-        <div className="min-h-screen bg-[#031637] flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
-        </div>
-    );
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#031637] text-slate-200 py-16 px-6 flex flex-col items-center justify-center gap-4">
+                <AlertTriangle size={40} className="text-amber-400" />
+                <h1 className="text-2xl font-bold">Authentication Required</h1>
+                <p className="text-white/60">Please sign in to view your dynamic booking history dashboard layouts.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#031637] text-slate-200 py-16 px-6">

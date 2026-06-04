@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, CalendarCheck, X, Calendar, Clock, DollarSign } from 'lucide-react';
+import { Loader2, CalendarCheck, X, Calendar, Clock } from 'lucide-react';
+import { authClient } from "@/lib/auth-client";
+import Image from 'next/image';
 
 export default function BookButton({ facilityId, hourlyRate, facilityName }) {
     const router = useRouter();
@@ -26,8 +28,20 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
     const rate = Number(hourlyRate) || 0;
     const totalBill = rate * Number(hours);
 
+    // Fetch the session data
+    const { data: session } = authClient.useSession();
+    const user = session?.user;
+
     const handleFormSubmit = async (e) => {
         e.preventDefault();
+
+        // 1. Guard clause checking authentication state 
+        if (!user || !user.email) {
+            alert('You must be logged in to reserve an arena layout.');
+            return;
+        }
+
+        // 2. Validate input fields
         if (!bookingDate || !timeSlot || hours <= 0) {
             alert('Please fill out all required fields before completing your reservation.');
             return;
@@ -35,13 +49,15 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
 
         setIsBooking(true);
         try {
+            // Added the user's email directly into the payload structural wrapper
             const payload = {
                 facilityId: facilityId,
                 facility_name: facilityName,
                 date: bookingDate,      
                 slot: timeSlot,        
                 hours: Number(hours),
-                totalBill: totalBill
+                totalBill: totalBill,
+                email: user.email // Key fix linked directly with your updated express router
             };
 
             console.log("Sending payload structure to backend:", payload);
@@ -174,7 +190,7 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 >
                                     {isBooking ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" /> Logging...
+                                            <Image width={16} height={16} src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='animate-spin'><path d='M21 12a9 9 0 1 1-6.219-8.56'/></svg>" className="w-4 h-4 animate-spin" alt="loading" /> Logging...
                                         </>
                                     ) : (
                                         "Confirm & Pay"
