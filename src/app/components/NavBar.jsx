@@ -1,22 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "@heroui/react";
 
+import UserProfileDropdown from "./UserProfileDropdown"; // Adjust path if needed
+
 const NavBar = () => {
-    // সেশন থেকে ইউজার ডেটা নেওয়া
     const { data: session } = authClient.useSession();
     const user = session?.user;
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    // সাইন আউট হ্যান্ডেলার
-    const handleSignOut = async () => {
-        await authClient.signOut();
-    };
 
     return (
         <div className="bg-[#031637] sticky top-0 z-50 border-b border-white/10">
@@ -30,51 +26,36 @@ const NavBar = () => {
                     {/* Desktop Navigation */}
                     <ul className="hidden md:flex items-center gap-6 lg:gap-8 text-white/90">
                         <li>
-                            <Link href="/" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
+                            <Link href="/" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
                                 Home
                             </Link>
                         </li>
                         <li>
-                            <Link href="/all-facilities" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">
+                            <Link href="/all-facilities" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
                                 All Facilities
                             </Link>
                         </li>
                         <li>
-                            <Link href="/my-bookings" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                            <Link href="/my-bookings" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
                                 My Bookings
                             </Link>
                         </li>
                         <li>
-                            <Link href="/add-facility" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                            <Link href="/add-facility" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
                                 Add Facility
                             </Link>
                         </li>
                         <li>
-                            <Link href="/manage-facilities" className="text-base font-medium text-white hover:text-[#00D4FF] transition duration-200">   
+                            <Link href="/manage-facilities" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
                                 Manage My Facilities
                             </Link>
                         </li>
                     </ul>
 
-                    {/* Desktop Actions Section (Conditional Rendering based on User Session) */}
+                    {/* Desktop User Section */}
                     <div className="hidden md:flex items-center gap-4">
                         {user ? (
-                            <div className="flex items-center gap-4">
-                                <Link href="/profile" className="flex items-center gap-2">
-                                    <Avatar className="w-10 h-10 border border-[#00D4FF]/30">
-                                        <Avatar.Image referrerPolicy="no-referrer" alt={user?.name || "User"} src={user?.image} />
-                                        <Avatar.Fallback className="bg-[#0A1F3D] text-[#00D4FF] font-bold">
-                                            {user?.name?.charAt(0).toUpperCase()}
-                                        </Avatar.Fallback>
-                                    </Avatar>
-                                </Link>
-                                <button 
-                                    onClick={handleSignOut}
-                                    className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium px-4 py-2 text-sm rounded-xl transition-all duration-200 flex items-center gap-2"
-                                >
-                                    <LogOut size={16} /> Logout
-                                </button>
-                            </div>
+                            <UserProfileDropdown user={user} />
                         ) : (
                             <>
                                 <Link href="/login" className="text-white/90 hover:text-white px-5 py-2 text-base font-medium transition-colors">
@@ -88,7 +69,7 @@ const NavBar = () => {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center gap-4">
+                    <div className="md:hidden flex items-center">
                         <button
                             className="text-white p-2 focus:outline-none"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -113,27 +94,26 @@ const NavBar = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/my-bookings" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>   
+                                <Link href="/my-bookings" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     My Bookings
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/add-facility" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>   
+                                <Link href="/add-facility" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     Add Facility
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/manage-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>   
+                                <Link href="/manage-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
                                     Manage My Facilities
                                 </Link>
                             </li>
                         </ul>
 
-                        {/* Mobile Actions Section */}
+                        {/* Mobile Actions */}
                         <div className="mt-6 pt-6 border-t border-white/10">
                             {user ? (
                                 <div className="flex flex-col gap-4">
-                                    {/* Mobile User Profile Info */}
                                     <Link 
                                         href="/profile" 
                                         className="flex items-center gap-3 p-3 bg-[#0A1F3D] rounded-xl border border-white/5"
@@ -150,14 +130,15 @@ const NavBar = () => {
                                             <span className="text-white/50 text-xs">View Profile</span>
                                         </div>
                                     </Link>
+
                                     <button
-                                        onClick={() => {
-                                            handleSignOut();
+                                        onClick={async () => {
+                                            await authClient.signOut();
                                             setIsMobileMenuOpen(false);
                                         }}
                                         className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-semibold py-3 rounded-xl text-center flex items-center justify-center gap-2 transition-colors w-full"
                                     >
-                                        <LogOut size={18} /> Logout
+                                        Logout
                                     </button>
                                 </div>
                             ) : (
