@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Calendar, Clock, ArrowLeft, Loader2, ShieldCheck, CreditCard, Tag, MapPin, XCircle, AlertTriangle } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
+import { toast } from 'react-hot-toast';
 
 // Helper function to handle badge style mappings based on DB status fields
 const getStatusTheme = (status) => {
@@ -43,18 +44,26 @@ export default function MyBookingsPage() {
 
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Invalid response from server. Please verify your API endpoint configuration.");
+                throw new Error("Invalid response from server.");
             }
             
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Could not retrieve user reservations from DB.");
+                throw new Error(data.message || "Could not retrieve bookings.");
             }
             
-            const actualBookings = data.data || data;
-            setBookings(Array.isArray(actualBookings) ? actualBookings : []);
+            const allBookings = data.data || data || [];
+            
+            // Only show active bookings
+            const activeBookings = allBookings.filter(booking => 
+                booking.status !== "CANCELLED" && 
+                booking.status?.toLowerCase() !== "cancelled"
+            );
+
+            setBookings(activeBookings);
         } catch (err) {
+            console.error(err);
             setError(err.message);
             setBookings([]);
         } finally {
@@ -63,6 +72,11 @@ export default function MyBookingsPage() {
     };
 
     const handleCancelBooking = async (bookingId) => {
+        if (!user?.email) {
+            setError("You must be logged in to cancel a booking.");
+            return;
+        }
+
         try {
             setCancellingId(bookingId);
             setError(null);
@@ -71,22 +85,41 @@ export default function MyBookingsPage() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({ email: user.email })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to cancel the reservation.');
+                throw new Error(data.message || 'Failed to cancel booking.');
             }
 
+            // Remove booking from UI
             setBookings(prevBookings => 
-                prevBookings.map(b => b._id === bookingId ? { ...b, status: 'CANCELLED' } : b)
+                prevBookings.filter(b => b._id !== bookingId)
             );
-            
+
             setConfirmCancelId(null);
+
+            // Success Toast
+            toast.success("Booking cancelled successfully!", {
+                duration: 4000,
+                position: 'top-right',
+                style: {
+                    background: '#10b981',
+                    color: '#fff',
+                    borderRadius: '12px',
+                }
+            });
+
         } catch (err) {
+            console.error(err);
             setError(err.message);
+            
+            toast.error(err.message || "Failed to cancel booking", {
+                position: 'top-right',
+            });
         } finally {
             setCancellingId(null);
         }

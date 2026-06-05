@@ -13,6 +13,7 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import { authClient } from "@/lib/auth-client"; // Ensure this matches your project layout path
+import { toast } from 'react-hot-toast';
 
 const AddFacilityPage = () => {
     const router = useRouter();
@@ -51,65 +52,80 @@ const AddFacilityPage = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
+    
+    // Prevent submissions if user data hasn't loaded yet
+    if (!user || !user.email) {
+        toast.error("You must be logged in to create a facility.");
+        return;
+    }
+
+    // Basic validation
+    if (!formData.name || !formData.location || !formData.price_per_hour || !formData.capacity || !formData.image) {
+        toast.error("Please fill in all required fields.");
+        return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+        const payload = {
+            name: formData.name,
+            facility_type: formData.facility_type,
+            location: formData.location,
+            price_per_hour: parseInt(formData.price_per_hour, 10), 
+            capacity: parseInt(formData.capacity, 10),
+            description: formData.description,
+            rules: formData.rules.trim(), 
+            timings: {                    
+                open: timings.openTime,
+                close: timings.closeTime
+            },
+            image: formData.image.trim(),                                                 
+            available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
+            booking_count: parseInt(formData.booking_count, 10) || 0,
+            owner_email: user.email 
+        };
+
+        const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
         
-        // Prevent submissions if user data hasn't structuralized yet
-        if (!user || !user.email) {
-            setError('You must be logged in to create a facility layout.');
-            return;
+        const response = await fetch(`${serverUrl}/api/facilities`, { 
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || data.error || 'Failed to create facility');
         }
 
-        setLoading(true);
-        setError('');
+        // Success Toast
+        toast.success("Facility added successfully!", {
+            duration: 4000,
+            position: 'top-right',
+        });
 
-        try {
-            const payload = {
-                name: formData.name,
-                facility_type: formData.facility_type,
-                location: formData.location,
-                price_per_hour: parseInt(formData.price_per_hour, 10), 
-                capacity: parseInt(formData.capacity, 10),
-                description: formData.description,
-                rules: formData.rules.trim(), 
-                timings: {                    
-                    open: timings.openTime,
-                    close: timings.closeTime
-                },
-                image: formData.image.trim(),                                                 
-                available_slots: ["08:00 AM - 10:00 AM", "04:00 PM - 06:00 PM"],
-                booking_count: parseInt(formData.booking_count, 10) || 0,
-                
-                // FIXED 🔑: Changed key from 'owner' to 'owner_email' to match backend mongo query filter requirements
-                owner_email: user.email 
-            };
+        setSuccess(true);
+        
+        // Redirect after showing success message
+        setTimeout(() => {
+            router.push('/manage-facilities');
+        }, 1800);
 
-            const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
-            
-            const response = await fetch(`${serverUrl}/api/facilities`, { 
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error(`Server error. Status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || data.error || 'Failed to create facility');
-
-            setSuccess(true);
-            setTimeout(() => router.push('/manage-facilities'), 2000); // Redirects straight to your dashboard row
-
-        } catch (err) {
-            setError(err.message || 'Something went wrong.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    } catch (err) {
+        console.error("Facility creation error:", err);
+        const errorMsg = err.message || 'Something went wrong.';
+        setError(errorMsg);
+        toast.error(errorMsg);
+    } finally {
+        setLoading(false);
+    }
+};
 
     // Block page layout interactives if an active profile footprint isn't detected
     if (!user) {

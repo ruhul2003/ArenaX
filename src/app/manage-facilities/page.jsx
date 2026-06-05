@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Edit3, MapPin, Loader2, Plus, Users, Calendar, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import { authClient } from "@/lib/auth-client"; 
+import { toast } from 'react-hot-toast';   // ← Added
 
 const ManageMyFacilities = () => {
     const router = useRouter();
@@ -72,31 +73,40 @@ const ManageMyFacilities = () => {
         };
     }, [user?.email, fetchMyFacilities]);
 
-    const handleDelete = async (id, name) => {
-        const confirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
-        if (!confirmed) return;
+const handleDelete = async (id, name) => {
+    // Show confirmation toast instead of window.confirm
+    const isConfirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
 
-        setDeletingId(id);
+    if (!isConfirmed) return;
 
-        try {
-            const response = await fetch(`${serverUrl}/api/facility/${id}`, {
-                method: 'DELETE'
-            });
+    setDeletingId(id);
 
-            if (!response.ok) {
-                const result = await response.json().catch(() => ({}));
-                throw new Error(result.message || "Failed to delete facility");
-            }
+    try {
+        const response = await fetch(`${serverUrl}/api/facility/${id}`, {
+            method: 'DELETE'
+        });
 
-            alert("Facility successfully removed!");
-            setFacilities(prev => prev.filter(item => item._id !== id));
-        } catch (error) {
-            console.error("Deletion error:", error);
-            alert(error.message || "Something went wrong");
-        } finally {
-            setDeletingId(null);
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(result.message || "Failed to delete facility");
         }
-    };
+
+        // Success Toast
+        toast.success(`Facility "${name}" has been successfully deleted!`, {
+            duration: 4000,
+            position: 'top-right',
+        });
+
+        // Remove from UI
+        setFacilities(prev => prev.filter(item => item._id !== id));
+
+    } catch (error) {
+        console.error("Deletion error:", error);
+        toast.error(error.message || "Failed to delete facility. Please try again.");
+    } finally {
+        setDeletingId(null);
+    }
+};
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';

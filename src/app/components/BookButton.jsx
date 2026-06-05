@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Loader2, CalendarCheck, X, Calendar, Clock } from 'lucide-react';
 import { authClient } from "@/lib/auth-client";
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';    
 
 export default function BookButton({ facilityId, hourlyRate, facilityName }) {
     const router = useRouter();
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+    
     const [isOpen, setIsOpen] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingDate, setBookingDate] = useState('');
@@ -28,28 +30,29 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
     const rate = Number(hourlyRate) || 0;
     const totalBill = rate * Number(hours);
 
-    // Fetch the session data
     const { data: session } = authClient.useSession();
     const user = session?.user;
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. Guard clause checking authentication state 
         if (!user || !user.email) {
-            alert('You must be logged in to reserve an arena layout.');
+            toast.error("You must be logged in to make a reservation.", {
+                position: 'top-right',
+            });
             return;
         }
 
-        // 2. Validate input fields
         if (!bookingDate || !timeSlot || hours <= 0) {
-            alert('Please fill out all required fields before completing your reservation.');
+            toast.error("Please fill out all required fields.", {
+                position: 'top-right',
+            });
             return;
         }
 
         setIsBooking(true);
+
         try {
-            // Added the user's email directly into the payload structural wrapper
             const payload = {
                 facilityId: facilityId,
                 facility_name: facilityName,
@@ -57,36 +60,35 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                 slot: timeSlot,        
                 hours: Number(hours),
                 totalBill: totalBill,
-                email: user.email // Key fix linked directly with your updated express router
+                email: user.email
             };
-
-            console.log("Sending payload structure to backend:", payload);
 
             const response = await fetch(`${serverUrl}/api/booking`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Invalid format returned from application backend server router.");
-            }
-
             const data = await response.json();
+
             if (!response.ok) {
-                throw new Error(data.message || 'Something went wrong processing your booking request.');
+                throw new Error(data.message || 'Booking failed. Please try again.');
             }
 
-            alert('🎉 Reservation completed successfully!');
-            setIsOpen(false); 
+            toast.success("Reservation completed successfully!", {
+                duration: 5000,
+                position: 'top-right',
+            });
+
+            setIsOpen(false);
             router.push('/my-bookings');
             router.refresh();
+
         } catch (err) {
-            console.error("Booking submission error:", err);
-            alert(err.message);
+            console.error("Booking error:", err);
+            toast.error(err.message || "Something went wrong. Please try again.", {
+                position: 'top-right',
+            });
         } finally {
             setIsBooking(false);
         }
@@ -106,7 +108,6 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-[#020c24] border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
                         
-                        {/* Close Icon Button */}
                         <button
                             onClick={() => setIsOpen(false)}
                             className="absolute top-4 right-4 text-white/40 hover:text-white transition"
@@ -147,7 +148,7 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 >
                                     <option value="" disabled hidden>Choose an active slot...</option>
                                     {availableSlots.map((slot, index) => (
-                                        <option key={index} value={slot} className="bg-[#031637]">
+                                        <option key={index} value={slot}>
                                             {slot}
                                         </option>
                                     ))}
@@ -190,7 +191,8 @@ export default function BookButton({ facilityId, hourlyRate, facilityName }) {
                                 >
                                     {isBooking ? (
                                         <>
-                                            <Image width={16} height={16} src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='animate-spin'><path d='M21 12a9 9 0 1 1-6.219-8.56'/></svg>" className="w-4 h-4 animate-spin" alt="loading" /> Logging...
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Processing...
                                         </>
                                     ) : (
                                         "Confirm & Pay"
