@@ -1,67 +1,54 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Star, MapPin, Users, ShieldCheck, Loader2, AlertCircle } from 'lucide-react';
-import BookButton from '../../components/BookButton'; 
+import Image from 'next/image';
+import { ArrowLeft, MapPin, Users, Star, ShieldCheck } from 'lucide-react';
+import BookButton from '../../components/BookButton';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
-const FacilityDetails = () => {
-    const { id } = useParams();
-    
-    const [facility, setFacility] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+const FacilityDetails = async ({ params }) => {
+    const { id } = await params;
 
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+    const { token } = await auth.api.getToken({
+        headers: await headers()
+    });
 
-    useEffect(() => {
-        if (!id) return;
 
-        const initializePageState = async () => {
-            try {
-                const facilityRes = await fetch(`${serverUrl}/api/facility/${id}`);
-                
-                const contentType = facilityRes.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    throw new Error("The requested facility page doesn't exist or returned an unexpected server format.");
-                }
+    let facility = null;
+    let error = null;
 
-                if (!facilityRes.ok) {
-                    throw new Error("Venue configurations are currently unavailable.");
-                }
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/facility/${id}`, {
+            headers: {
+                authorization: `Bearer ${token}`,
+            },
+            cache: 'no-store', // or 'force-cache' depending on your needs
+        });
 
-                const data = await facilityRes.json();
-                setFacility(data);
-            } catch (err) {
-                console.error("Facility initialization sequence failed:", err);
-                setError(err.message || "Failed to retrieve listing metrics.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        if (!res.ok) {
+            throw new Error("Venue configurations are currently unavailable.");
+        }
 
-        initializePageState();
-    }, [id, serverUrl]);
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("The requested facility page doesn't exist or returned an unexpected server format.");
+        }
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-[#031637] flex items-center justify-center">
-                <Loader2 className="w-10 h-10 text-[#00D4FF] animate-spin" />
-            </div>
-        );
+        facility = await res.json();
+    } catch (err) {
+        console.error("Facility fetch failed:", err);
+        error = err.message || "Failed to retrieve listing metrics.";
     }
 
     if (error || !facility) {
         return (
             <div className="min-h-screen bg-[#031637] flex flex-col items-center justify-center text-white p-6 text-center">
-                <AlertCircle className="w-16 h-16 text-red-500 mb-4 animate-bounce" />
+                <div className="text-red-500 mb-4 text-7xl">⚠️</div>
                 <h2 className="text-4xl font-bold mb-2">Venue Not Found</h2>
-                <p className="text-white/60 mb-6 max-w-md">
-                    The specific index sequence could not be matched against any open operational facility pools.
-                </p>
-                <Link href="/all-facilities" className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium px-6 py-3 rounded-xl transition duration-200">
+                <p className="text-white/60 mb-6 max-w-md">{error}</p>
+                <Link 
+                    href="/all-facilities" 
+                    className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium px-6 py-3 rounded-xl transition duration-200"
+                >
                     ← Return to Browse
                 </Link>
             </div>
@@ -71,11 +58,16 @@ const FacilityDetails = () => {
     return (
         <div className="min-h-screen bg-[#031637] text-white py-12 px-6">
             <div className="max-w-6xl mx-auto">
-                <Link href="/all-facilities" className="flex items-center gap-2 text-white/60 hover:text-[#00D4FF] transition mb-8 group w-fit">
-                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> Back to Listings
+                <Link 
+                    href="/all-facilities" 
+                    className="flex items-center gap-2 text-white/60 hover:text-[#00D4FF] transition mb-8 group w-fit"
+                >
+                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> 
+                    Back to Listings
                 </Link>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    {/* Left Column - Image & Description */}
                     <div className="lg:col-span-7 space-y-8">
                         <div className="relative rounded-3xl overflow-hidden aspect-[16/10] shadow-2xl border border-white/5 bg-[#0A1F3D]">
                             <Image 
@@ -84,10 +76,10 @@ const FacilityDetails = () => {
                                 fill 
                                 className="object-cover hover:scale-105 transition-transform duration-700"
                                 priority
-                                sizes="(max-w-768px) 100vw, 700px"
+                                sizes="(max-width: 768px) 100vw, 700px"
                             />
                         </div>
-                        
+
                         <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/5">
                             <h2 className="text-2xl font-semibold mb-4">About the Venue</h2>
                             <p className="text-white/70 leading-relaxed text-lg whitespace-pre-line">
@@ -96,21 +88,24 @@ const FacilityDetails = () => {
                         </div>
                     </div>
 
+                    {/* Right Column - Details & Booking */}
                     <div className="lg:col-span-5 space-y-6">
                         <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/10 shadow-xl">
                             <h1 className="text-4xl font-bold mb-2 tracking-tight">{facility.name}</h1>
-                            <div className="flex items-center gap-2 text-[#00D4FF] mb-6">
-                                <MapPin size={18} /> <span className="font-medium">{facility.location}</span>
-                            </div>
                             
+                            <div className="flex items-center gap-2 text-[#00D4FF] mb-6">
+                                <MapPin size={18} /> 
+                                <span className="font-medium">{facility.location}</span>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4 mb-8">
                                 <div className="bg-[#031637] p-4 rounded-xl text-center border border-white/5">
-                                    <Users className="mx-auto mb-2 text-[#00D4FF]" />
+                                    <Users className="mx-auto mb-2 text-[#00D4FF]" size={24} />
                                     <p className="text-sm text-white/50">Capacity</p>
                                     <p className="font-bold text-lg">{facility.capacity || 20} Players</p>
                                 </div>
                                 <div className="bg-[#031637] p-4 rounded-xl text-center border border-white/5">
-                                    <Star className="mx-auto mb-2 text-yellow-400 fill-yellow-400" />
+                                    <Star className="mx-auto mb-2 text-yellow-400 fill-yellow-400" size={24} />
                                     <p className="text-sm text-white/50">Rating</p>
                                     <p className="font-bold text-lg">4.8 / 5.0</p>
                                 </div>
