@@ -14,10 +14,9 @@ const AllFacilities = () => {
                 const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
                 const res = await fetch(`${baseUrl}/api/facilities`);
 
-                // Safety check for JSON response
                 const contentType = res.headers.get("content-type");
                 if (!contentType || !contentType.includes("application/json")) {
-                    console.error("❌ Expected JSON response, but received non-JSON content.");
+                    console.error("Expected JSON response, but received non-JSON content.");
                     setFacilities([]);
                     return;
                 }

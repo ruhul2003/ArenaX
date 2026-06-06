@@ -21,7 +21,6 @@ const SignupPage = () => {
     const formData = new FormData(e.currentTarget);
     const user = Object.fromEntries(formData.entries());
 
-    // পাসওয়ার্ড ভ্যালিডেশন (প্রথম কোডের নিয়ম অনুযায়ী)
     if (user.password.length < 8) {
       setError("Password must be at least 8 characters");
       setLoading(false);

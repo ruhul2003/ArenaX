@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "@heroui/react";
 
-import UserProfileDropdown from "./UserProfileDropdown"; // Adjust path if needed
+import UserProfileDropdown from "./UserProfileDropdown"; 
 
 const NavBar = () => {
     const { data: session } = authClient.useSession();

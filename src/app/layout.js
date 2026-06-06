@@ -1,7 +1,7 @@
 import "./globals.css";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
-import { Toaster } from 'react-hot-toast';   // ← Add this import
+import { Toaster } from 'react-hot-toast'; 
 
 export const metadata = {
   title: "ArenaX",

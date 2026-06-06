@@ -16,7 +16,6 @@ function LoginForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     
-    // প্রথম কোডের মতো ডিফল্ট '/' অথবা কুয়েরি প্যারামিটারে রিডাইরেক্ট পাথ থাকলে সেটি নিবে
     const redirectPath = searchParams.get('redirect') || '/';
 
     const onSubmit = async (e) => {

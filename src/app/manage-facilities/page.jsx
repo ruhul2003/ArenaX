@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Edit3, MapPin, Loader2, Plus, Users, Calendar, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import { authClient } from "@/lib/auth-client"; 
-import { toast } from 'react-hot-toast';   // ← Added
+import { toast } from 'react-hot-toast';  
 
 const ManageMyFacilities = () => {
     const router = useRouter();
@@ -16,7 +16,6 @@ const ManageMyFacilities = () => {
 
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
 
-    // Retrieve auth session state directly from authClient
     const { data: session, isPending: isAuthLoading } = authClient.useSession();
     const user = session?.user;
 
@@ -29,7 +28,6 @@ const ManageMyFacilities = () => {
             setIsLoadingData(true);
             setError(null); 
             
-            // ইমেইল স্ট্রিংটিকে ব্যাকএন্ডের জন্য নরমাল ফরম্যাটে পাঠাতে সরাসরি পাস করা হলো
             const targetUrl = `${serverUrl}/api/my-facilities?email=${user.email}`;
             
             const response = await fetch(targetUrl, { 
@@ -48,7 +46,6 @@ const ManageMyFacilities = () => {
 
             const data = await response.json();
             
-            // Handle wrapper payloads gracefully if present
             const resolvedData = data.data !== undefined ? data.data : data;
             setFacilities(Array.isArray(resolvedData) ? resolvedData : []);
         } catch (err) {
@@ -58,9 +55,8 @@ const ManageMyFacilities = () => {
         } finally {
             setIsLoadingData(false);
         }
-    }, [serverUrl, user]); // dependency তে পুরো user অবজেক্ট ট্র্যাক করা হলো
+    }, [serverUrl, user]); 
 
-    // Triggers cleanly whenever the authenticated user state changes
     useEffect(() => {
         let isMounted = true;
 
@@ -74,7 +70,6 @@ const ManageMyFacilities = () => {
     }, [user?.email, fetchMyFacilities]);
 
 const handleDelete = async (id, name) => {
-    // Show confirmation toast instead of window.confirm
     const isConfirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
 
     if (!isConfirmed) return;
@@ -97,7 +92,6 @@ const handleDelete = async (id, name) => {
             position: 'top-right',
         });
 
-        // Remove from UI
         setFacilities(prev => prev.filter(item => item._id !== id));
 
     } catch (error) {
@@ -118,7 +112,6 @@ const handleDelete = async (id, name) => {
         });
     };
 
-    // 1. Render global spinner ONLY while authentication status is actively verifying
     if (isAuthLoading) {
         return (
             <div className="min-h-screen bg-[#031637] flex items-center justify-center">
@@ -127,7 +120,6 @@ const handleDelete = async (id, name) => {
         );
     }
 
-    // 2. Safely block anonymous access after verification complete
     if (!user) {
         return (
             <div className="min-h-screen bg-[#031637] text-slate-200 py-16 px-6 flex flex-col items-center justify-center gap-4">
@@ -161,7 +153,6 @@ const handleDelete = async (id, name) => {
                     </div>
                 )}
                 
-                {/* 3. Render contextual table loaders distinctly from authorization checks */}
                 {isLoadingData ? (
                     <div className="bg-[#0A1F3D] border border-white/10 rounded-3xl p-16 flex flex-col items-center justify-center gap-3">
                         <Loader2 className="w-8 h-8 text-[#00D4FF] animate-spin" />

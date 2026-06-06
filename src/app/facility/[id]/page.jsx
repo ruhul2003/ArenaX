@@ -67,7 +67,7 @@ const FacilityDetails = async ({ params }) => {
                 </Link>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    {/* Left Column - Image & Description */}
+                   
                     <div className="lg:col-span-7 space-y-8">
                         <div className="relative rounded-3xl overflow-hidden aspect-[16/10] shadow-2xl border border-white/5 bg-[#0A1F3D]">
                             <Image 
@@ -88,7 +88,6 @@ const FacilityDetails = async ({ params }) => {
                         </div>
                     </div>
 
-                    {/* Right Column - Details & Booking */}
                     <div className="lg:col-span-5 space-y-6">
                         <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/10 shadow-xl">
                             <h1 className="text-4xl font-bold mb-2 tracking-tight">{facility.name}</h1>

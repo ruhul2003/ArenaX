@@ -8,7 +8,6 @@ import { Calendar, Clock, ArrowLeft, Loader2, ShieldCheck, CreditCard, Tag, MapP
 import { authClient } from "@/lib/auth-client";
 import { toast } from 'react-hot-toast';
 
-// Helper function to handle badge style mappings based on DB status fields
 const getStatusTheme = (status) => {
     const s = status?.toLowerCase();
     if (s === 'confirmed' || s === 'approved' || s === 'paid') return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
@@ -55,7 +54,6 @@ export default function MyBookingsPage() {
             
             const allBookings = data.data || data || [];
             
-            // Only show active bookings
             const activeBookings = allBookings.filter(booking => 
                 booking.status !== "CANCELLED" && 
                 booking.status?.toLowerCase() !== "cancelled"
@@ -95,7 +93,6 @@ export default function MyBookingsPage() {
                 throw new Error(data.message || 'Failed to cancel booking.');
             }
 
-            // Remove booking from UI
             setBookings(prevBookings => 
                 prevBookings.filter(b => b._id !== bookingId)
             );

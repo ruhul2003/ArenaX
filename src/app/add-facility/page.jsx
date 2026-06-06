@@ -21,7 +21,6 @@ const AddFacilityPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    // Retrieve active user authentication session context
     const { data: session } = authClient.useSession();
     const user = session?.user;
 

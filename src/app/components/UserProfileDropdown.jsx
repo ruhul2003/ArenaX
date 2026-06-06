@@ -22,7 +22,7 @@ const UserProfileDropdown = ({ user }) => {
 
     const handleLogout = async () => {
         setIsOpen(false);
-        await authClient.signOut();   // Better than window.location
+        await authClient.signOut(); 
     };
 
     const userInitials = user?.name 
