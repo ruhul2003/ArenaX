@@ -12,7 +12,7 @@ import {
     Hash,
     AlertTriangle
 } from 'lucide-react';
-import { authClient } from "@/lib/auth-client"; // Ensure this matches your project layout path
+import { authClient } from "@/lib/auth-client"; 
 import { toast } from 'react-hot-toast';
 
 const AddFacilityPage = () => {
@@ -25,7 +25,6 @@ const AddFacilityPage = () => {
     const { data: session } = authClient.useSession();
     const user = session?.user;
 
-    // Form states
     const [formData, setFormData] = useState({
         name: '',
         facility_type: 'Cricket Ground',
@@ -54,13 +53,11 @@ const AddFacilityPage = () => {
     const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Prevent submissions if user data hasn't loaded yet
     if (!user || !user.email) {
         toast.error("You must be logged in to create a facility.");
         return;
     }
 
-    // Basic validation
     if (!formData.name || !formData.location || !formData.price_per_hour || !formData.capacity || !formData.image) {
         toast.error("Please fill in all required fields.");
         return;
@@ -112,7 +109,6 @@ const AddFacilityPage = () => {
 
         setSuccess(true);
         
-        // Redirect after showing success message
         setTimeout(() => {
             router.push('/manage-facilities');
         }, 1800);
@@ -127,7 +123,6 @@ const AddFacilityPage = () => {
     }
 };
 
-    // Block page layout interactives if an active profile footprint isn't detected
     if (!user) {
         return (
             <div className="min-h-screen bg-[#031637] text-white px-6 py-12 flex flex-col justify-center items-center gap-4">
