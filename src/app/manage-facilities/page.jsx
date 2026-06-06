@@ -20,14 +20,14 @@ const ManageMyFacilities = () => {
     const { data: session, isPending: isAuthLoading } = authClient.useSession();
     const user = session?.user;
 
-    // Memoized fetch function passing down the owner email parameter
+
     const fetchMyFacilities = useCallback(async () => {
-        // ইমেইল বা ইউজার অবজেক্ট পুরোপুরি লোড না হওয়া পর্যন্ত রিকোয়েস্ট ব্লক করে রাখা হলো
+
         if (!user || !user?.email) return;
 
         try {
             setIsLoadingData(true);
-            setError(null);
+            setError(null); 
             
             // ইমেইল স্ট্রিংটিকে ব্যাকএন্ডের জন্য নরমাল ফরম্যাটে পাঠাতে সরাসরি পাস করা হলো
             const targetUrl = `${serverUrl}/api/my-facilities?email=${user.email}`;

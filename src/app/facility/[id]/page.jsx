@@ -21,7 +21,7 @@ const FacilityDetails = async ({ params }) => {
             headers: {
                 authorization: `Bearer ${token}`,
             },
-            cache: 'no-store', // or 'force-cache' depending on your needs
+            cache: 'no-store', 
         });
 
         if (!res.ok) {
