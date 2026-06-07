@@ -1,105 +1,151 @@
-import React from 'react';
-import { cookies } from 'next/headers';
-import { getFacilities } from '../lib/data';
+import Link from 'next/link';
 import Image from 'next/image';
-import { FaStar } from "react-icons/fa";
+import { ArrowLeft, MapPin, Users, Star, ShieldCheck } from 'lucide-react';
+import BookButton from './BookButton';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
-const Featured = async () => {
-    const facilities = await getFacilities();
-    
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-    const isLoggedIn = !!token;
+const FacilityDetails = async ({ params }) => {
+    // URL query target parsing safely await extraction
+    const { id } = await params;
+
+    // better-auth user request dynamic verification token extraction
+    const sessionData = await auth.api.getToken({
+        headers: await headers()
+    });
+
+    const token = sessionData?.token || null;
+
+    let facility = null;
+    let error = null;
+
+    try {
+        const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+        
+        // Dynamic fetch configuration block mapping authorization validation tracking headers
+        const res = await fetch(`${baseUrl}/api/facility/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            cache: 'no-store', 
+        });
+
+        if (!res.ok) {
+            throw new Error(`Venue listing unavailable. Status code target rejected: ${res.status}`);
+        }
+
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("The requested facility page doesn't exist or returned an unexpected server format.");
+        }
+
+        facility = await res.json();
+    } catch (err) {
+        console.error("Facility fetch failed safely tracked:", err);
+        error = err.message || "Failed to retrieve listing metrics.";
+    }
+
+    if (error || !facility) {
+        return (
+            <div className="min-h-screen bg-[#031637] flex flex-col items-center justify-center text-white p-6 text-center">
+                <div className="text-red-500 mb-4 text-7xl">⚠️</div>
+                <h2 className="text-4xl font-bold mb-2">Venue Not Found</h2>
+                <p className="text-white/60 mb-6 max-w-md">{error}</p>
+                <Link 
+                    href="/all-facilities" 
+                    className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium px-6 py-3 rounded-xl transition duration-200"
+                >
+                    ← Return to Browse
+                </Link>
+            </div>
+        );
+    }
 
     return (
-        <div className="py-16 md:py-24 bg-[#031637]">
-            <div className="max-w-7xl mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-10">
-                    <div>
-                        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                            Featured Facilities
-                        </h1>
-                        <p className="text-white/70 mt-2 text-lg">
-                            {facilities.length} premium sports venues available
-                        </p>
+        <div className="min-h-screen bg-[#031637] text-white py-12 px-6">
+            <div className="max-w-6xl mx-auto">
+                <Link 
+                    href="/all-facilities" 
+                    className="flex items-center gap-2 text-white/60 hover:text-[#00D4FF] transition mb-8 group w-fit"
+                >
+                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> 
+                    Back to Listings
+                </Link>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                   
+                    <div className="lg:col-span-7 space-y-8">
+                        <div className="relative rounded-3xl overflow-hidden aspect-[16/10] shadow-2xl border border-white/5 bg-[#0A1F3D]">
+                            <Image 
+                                src={facility.image || '/placeholder.jpg'} 
+                                alt={facility.name} 
+                                fill 
+                                className="object-cover hover:scale-105 transition-transform duration-700"
+                                priority
+                                sizes="(max-width: 768px) 100vw, 700px"
+                            />
+                        </div>
+
+                        <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/5">
+                            <h2 className="text-2xl font-semibold mb-4">About the Venue</h2>
+                            <p className="text-white/70 leading-relaxed text-lg whitespace-pre-line">
+                                {facility.description}
+                            </p>
+                        </div>
                     </div>
-                    <a 
-                        href="/all-facilities" 
-                        className="mt-4 md:mt-0 text-[#00D4FF] hover:text-white font-medium flex items-center gap-2 group"
-                    >
-                        View All Facilities 
-                        <span className="group-hover:translate-x-1 transition">→</span>
-                    </a>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                    {facilities.map((facility) => {
-                        const facilityId = facility._id || facility.id;
-                        const targetFacilityPath = `/facility/${facilityId}`;
-                        
-                        const bookingUrl = isLoggedIn 
-                            ? targetFacilityPath 
-                            : `/login?callbackUrl=${encodeURIComponent(targetFacilityPath)}`;
+                    <div className="lg:col-span-5 space-y-6">
+                        <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/10 shadow-xl">
+                            <h1 className="text-4xl font-bold mb-2 tracking-tight">{facility.name}</h1>
+                            
+                            <div className="flex items-center gap-2 text-[#00D4FF] mb-6">
+                                <MapPin size={18} /> 
+                                <span className="font-medium">{facility.location}</span>
+                            </div>
 
-                        return (
-                            <div
-                                key={facilityId}
-                                className="bg-[#031637] rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-[#00D4FF]/10 transition-all duration-300 border border-white/5 hover:border-[#00D4FF]/30"
-                            >
-                                <div className="relative h-56 overflow-hidden">
-                                    <Image
-                                        src={facility.image || '/placeholder.jpg'}
-                                        alt={facility.name}
-                                        fill
-                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                    />
-                                    <div className="absolute top-4 right-4 bg-black/70 text-white text-xs font-medium px-3 py-1 rounded-full">
-                                        {facility.sportType || facility.facility_type || 'Multi-Sport'}
-                                    </div>
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <div className="bg-[#031637] p-4 rounded-xl text-center border border-white/5">
+                                    <Users className="mx-auto mb-2 text-[#00D4FF]" size={24} />
+                                    <p className="text-sm text-white/50">Capacity</p>
+                                    <p className="font-bold text-lg">{facility.capacity || 20} Players</p>
                                 </div>
-
-                                {/* Content */}
-                                <div className="p-6">
-                                    <h3 className="text-xl font-semibold text-white line-clamp-2">
-                                        {facility.name}
-                                    </h3>
-                                    
-                                    <p className="text-white/60 text-sm mt-1">
-                                        {facility.location}
-                                    </p>
-
-                                    {/* Rating & Price */}
-                                    <div className="flex justify-between items-center mt-6">
-                                        <div className="flex items-center gap-1">
-                                            <FaStar className="text-[#00D4FF]" />
-                                            <span className="text-white font-medium">
-                                                {facility.booking_count || 0}
-                                            </span>
-                                        </div>
-
-                                        <div>
-                                            <span className="text-[#00D4FF] font-bold text-xl">
-                                                ৳{facility.price_per_hour}
-                                            </span>
-                                            <span className="text-white/50 text-sm">/hr</span>
-                                        </div>
-                                    </div>
-
-                                    <a 
-                                        href={bookingUrl}
-                                        className="mt-6 block w-full bg-[#00D4FF] hover:bg-[#00B8E0] text-[#031637] font-semibold py-3.5 rounded-2xl text-center transition-all duration-200 hover:scale-[1.02]"
-                                    >
-                                        Book Now
-                                    </a>
+                                <div className="bg-[#031637] p-4 rounded-xl text-center border border-white/5">
+                                    <Star className="mx-auto mb-2 text-yellow-400 fill-yellow-400" size={24} />
+                                    <p className="text-sm text-white/50">Rating</p>
+                                    <p className="font-bold text-lg">4.8 / 5.0</p>
                                 </div>
                             </div>
-                        );
-                    })}
+
+                            <div className="mb-8 bg-[#031637]/50 p-4 rounded-2xl border border-white/5">
+                                <p className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-1">Hourly Rate</p>
+                                <p className="text-5xl font-extrabold text-[#00D4FF]">
+                                    ৳{facility.price_per_hour}
+                                    <span className="text-sm text-white/40 font-normal tracking-normal ml-2">/ hour</span>
+                                </p>
+                            </div>
+
+                            <BookButton 
+                                facilityId={facility._id?.toString() || facility.id} 
+                                facilityName={facility.name} 
+                                hourlyRate={facility.price_per_hour} 
+                            />
+                        </div>
+
+                        <div className="bg-[#0A1F3D] p-6 rounded-3xl border border-white/5 flex items-start gap-4">
+                            <ShieldCheck className="text-green-400 mt-1 shrink-0" size={24} />
+                            <div>
+                                <h4 className="font-semibold text-white">ArenaX Guard Protection</h4>
+                                <p className="text-sm text-white/60 leading-relaxed mt-0.5">
+                                    Verified commercial listing. Payment funds are escrowed safely until match slot verification checks pass.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-export default Featured;
+export default FacilityDetails;
