@@ -1,15 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, MapPin, Users, Star, ShieldCheck } from 'lucide-react';
-import BookButton from '../../components/BookButton'; // Path correct kore niben pipeline onujayi
+import BookButton from '../../components/BookButton'; 
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
-// Build system prerender fallback avoid korar jonno forced dynamic context
 export const dynamic = 'force-dynamic';
 
 const FacilityDetails = async ({ params }) => {
-    // 1. Params object exist kore kina tar runtime safety check
     if (!params) {
         return (
             <div className="min-h-screen bg-[#031637] flex items-center justify-center text-white">
@@ -21,7 +19,6 @@ const FacilityDetails = async ({ params }) => {
     const resolvedParams = await params;
     const id = resolvedParams?.id;
 
-    // 2. ID structure undefined thakle crash handle fallback
     if (!id) {
         return (
             <div className="min-h-screen bg-[#031637] flex flex-col items-center justify-center text-white p-6 text-center">
@@ -35,7 +32,6 @@ const FacilityDetails = async ({ params }) => {
         );
     }
 
-    // Better-auth headers trace context sync token extraction
     let token = null;
     try {
         const sessionData = await auth.api.getToken({
