@@ -239,7 +239,7 @@ const handleDelete = async (id, name) => {
                                                     <Loader2 size={16} className="animate-spin" />
                                                 ) : (
                                                     <Trash2 size={16} />
-                                                )}
+                                                )} 
                                             </button>
                                         </td>
                                     </tr>
@@ -253,4 +253,4 @@ const handleDelete = async (id, name) => {
     );
 };
 
-export default ManageMyFacilities;
+export default ManageMyFacilities; 
