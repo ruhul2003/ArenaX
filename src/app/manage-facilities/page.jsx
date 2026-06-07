@@ -229,13 +229,7 @@ const handleDelete = async (id, name) => {
                                         </td>
                                         
                                         <td className="p-6 text-right space-x-2 whitespace-nowrap">
-                                            <button 
-                                                onClick={() => router.push(`/manage-facilities/edit/${f._id}`)} 
-                                                disabled={deletingId === f._id}
-                                                className="p-2.5 bg-white/5 hover:bg-[#00D4FF] text-white/80 hover:text-[#031637] rounded-xl border border-white/5 transition disabled:opacity-50"
-                                            >
-                                                <Edit3 size={16} />
-                                            </button>
+                                            
                                             <button 
                                                 onClick={() => handleDelete(f._id, f.name)} 
                                                 disabled={deletingId === f._id}
