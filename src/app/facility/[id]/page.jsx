@@ -1,41 +1,77 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, MapPin, Users, Star, ShieldCheck } from 'lucide-react';
-import BookButton from '../../components/BookButton';
+import BookButton from '../../components/BookButton'; // Path correct kore niben pipeline onujayi
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
+// Build system prerender fallback avoid korar jonno forced dynamic context
+export const dynamic = 'force-dynamic';
+
 const FacilityDetails = async ({ params }) => {
-    const { id } = await params;
+    // 1. Params object exist kore kina tar runtime safety check
+    if (!params) {
+        return (
+            <div className="min-h-screen bg-[#031637] flex items-center justify-center text-white">
+                <p>Loading parameters...</p>
+            </div>
+        );
+    }
 
-    const { token } = await auth.api.getToken({
-        headers: await headers()
-    });
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
 
+    // 2. ID structure undefined thakle crash handle fallback
+    if (!id) {
+        return (
+            <div className="min-h-screen bg-[#031637] flex flex-col items-center justify-center text-white p-6 text-center">
+                <div className="text-red-500 mb-4 text-7xl">⚠️</div>
+                <h2 className="text-4xl font-bold mb-2">Invalid Request</h2>
+                <p className="text-white/60 mb-6">Facility identifier is missing or corrupted.</p>
+                <Link href="/all-facilities" className="bg-white/10 text-white px-6 py-3 rounded-xl">
+                    ← Return to Browse
+                </Link>
+            </div>
+        );
+    }
+
+    // Better-auth headers trace context sync token extraction
+    let token = null;
+    try {
+        const sessionData = await auth.api.getToken({
+            headers: await headers()
+        });
+        token = sessionData?.token || null;
+    } catch (tokenErr) {
+        console.error("Token verification parsing context error:", tokenErr);
+    }
 
     let facility = null;
     let error = null;
 
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/facility/${id}`, {
+        const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+        
+        const res = await fetch(`${baseUrl}/api/facility/${id}`, {
             headers: {
-                authorization: `Bearer ${token}`,
+                "Authorization": token ? `Bearer ${token}` : "",
+                "Content-Type": "application/json"
             },
             cache: 'no-store', 
         });
 
         if (!res.ok) {
-            throw new Error("Venue configurations are currently unavailable.");
+            throw new Error(`Venue configurations unavailable. Server responded with code: ${res.status}`);
         }
 
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-            throw new Error("The requested facility page doesn't exist or returned an unexpected server format.");
+            throw new Error("Server returned non-JSON data format. Verification routing issue.");
         }
 
         facility = await res.json();
     } catch (err) {
-        console.error("Facility fetch failed:", err);
+        console.error("Facility fetch failed safely tracked:", err);
         error = err.message || "Failed to retrieve listing metrics.";
     }
 
@@ -71,8 +107,8 @@ const FacilityDetails = async ({ params }) => {
                     <div className="lg:col-span-7 space-y-8">
                         <div className="relative rounded-3xl overflow-hidden aspect-[16/10] shadow-2xl border border-white/5 bg-[#0A1F3D]">
                             <Image 
-                                src={facility.image || '/placeholder.jpg'} 
-                                alt={facility.name} 
+                                src={facility?.image || '/placeholder.jpg'} 
+                                alt={facility?.name || "Premium Arena"} 
                                 fill 
                                 className="object-cover hover:scale-105 transition-transform duration-700"
                                 priority
@@ -83,25 +119,25 @@ const FacilityDetails = async ({ params }) => {
                         <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/5">
                             <h2 className="text-2xl font-semibold mb-4">About the Venue</h2>
                             <p className="text-white/70 leading-relaxed text-lg whitespace-pre-line">
-                                {facility.description}
+                                {facility?.description || "No description provided."}
                             </p>
                         </div>
                     </div>
 
                     <div className="lg:col-span-5 space-y-6">
                         <div className="bg-[#0A1F3D] p-8 rounded-3xl border border-white/10 shadow-xl">
-                            <h1 className="text-4xl font-bold mb-2 tracking-tight">{facility.name}</h1>
+                            <h1 className="text-4xl font-bold mb-2 tracking-tight">{facility?.name}</h1>
                             
                             <div className="flex items-center gap-2 text-[#00D4FF] mb-6">
                                 <MapPin size={18} /> 
-                                <span className="font-medium">{facility.location}</span>
+                                <span className="font-medium">{facility?.location}</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-8">
                                 <div className="bg-[#031637] p-4 rounded-xl text-center border border-white/5">
                                     <Users className="mx-auto mb-2 text-[#00D4FF]" size={24} />
                                     <p className="text-sm text-white/50">Capacity</p>
-                                    <p className="font-bold text-lg">{facility.capacity || 20} Players</p>
+                                    <p className="font-bold text-lg">{facility?.capacity || 20} Players</p>
                                 </div>
                                 <div className="bg-[#031637] p-4 rounded-xl text-center border border-white/5">
                                     <Star className="mx-auto mb-2 text-yellow-400 fill-yellow-400" size={24} />
@@ -113,15 +149,15 @@ const FacilityDetails = async ({ params }) => {
                             <div className="mb-8 bg-[#031637]/50 p-4 rounded-2xl border border-white/5">
                                 <p className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-1">Hourly Rate</p>
                                 <p className="text-5xl font-extrabold text-[#00D4FF]">
-                                    ৳{facility.price_per_hour}
+                                    ৳{facility?.price_per_hour}
                                     <span className="text-sm text-white/40 font-normal tracking-normal ml-2">/ hour</span>
                                 </p>
                             </div>
 
                             <BookButton 
-                                facilityId={facility._id} 
-                                facilityName={facility.name} 
-                                hourlyRate={facility.price_per_hour} 
+                                facilityId={facility?._id?.toString() || facility?.id?.toString() || ""} 
+                                facilityName={facility?.name || ""} 
+                                hourlyRate={facility?.price_per_hour || 0} 
                             />
                         </div>
 
