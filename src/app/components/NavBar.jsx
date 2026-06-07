@@ -35,21 +35,27 @@ const NavBar = () => {
                                 All Facilities
                             </Link>
                         </li>
-                        <li>
-                            <Link href="/my-bookings" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
-                                My Bookings
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/add-facility" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
-                                Add Facility
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/manage-facilities" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
-                                Manage My Facilities
-                            </Link>
-                        </li>
+                        
+                        {/* 🔒 Condition mapping: User thaklei kebol niche links gulo rendering queue-te ashbe */}
+                        {user && (
+                            <>
+                                <li>
+                                    <Link href="/my-bookings" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
+                                        My Bookings
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/add-facility" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
+                                        Add Facility
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/manage-facilities" className="text-base font-medium hover:text-[#00D4FF] transition duration-200">
+                                        Manage My Facilities
+                                    </Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
 
                     {/* Desktop User Section */}
@@ -79,7 +85,7 @@ const NavBar = () => {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
+                {/* Mobile Menu Content Wrapper */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden mt-4 pt-4 border-t border-white/10">
                         <ul className="flex flex-col gap-4 text-white/90 text-base">
@@ -93,21 +99,27 @@ const NavBar = () => {
                                     All Facilities
                                 </Link>
                             </li>
-                            <li>
-                                <Link href="/my-bookings" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                    My Bookings
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/add-facility" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                    Add Facility
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/manage-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
-                                    Manage My Facilities
-                                </Link>
-                            </li>
+                            
+                            {/* 🔒 Mobile Protected Links Injection */}
+                            {user && (
+                                <>
+                                    <li>
+                                        <Link href="/my-bookings" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            My Bookings
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/add-facility" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            Add Facility
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link href="/manage-facilities" className="block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                                            Manage My Facilities
+                                        </Link>
+                                    </li>
+                                </>
+                            )}
                         </ul>
 
                         {/* Mobile Actions */}
