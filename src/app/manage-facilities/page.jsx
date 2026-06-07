@@ -71,27 +71,42 @@ const ManageMyFacilities = () => {
 
 const handleDelete = async (id, name) => {
     const isConfirmed = window.confirm(`Are you absolutely sure you want to delete "${name}"? This action cannot be undone.`);
-
     if (!isConfirmed) return;
 
     setDeletingId(id);
 
     try {
+        const sessionData = await authClient.getSession();
+        const session = sessionData?.data || sessionData; 
+
+        const token = 
+            session?.token || 
+            session?.session?.token || 
+            session?.data?.token ||
+            session?.accessToken; 
+
+        if (!token) {
+            console.warn("No token found in session:", session);
+            toast.error("Authentication session expired. Please refresh and try again.");
+            return;
+        }
+
         const response = await fetch(`${serverUrl}/api/facility/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include' 
         });
 
         if (!response.ok) {
             const result = await response.json().catch(() => ({}));
-            throw new Error(result.message || "Failed to delete facility");
+            throw new Error(result.message || `Delete failed: ${response.status}`);
         }
 
-        // Success Toast
-        toast.success(`Facility "${name}" has been successfully deleted!`, {
-            duration: 4000,
-            position: 'top-right',
-        });
-
+        toast.success(`Facility "${name}" has been successfully deleted!`);
         setFacilities(prev => prev.filter(item => item._id !== id));
 
     } catch (error) {
@@ -254,3 +269,7 @@ const handleDelete = async (id, name) => {
 };
 
 export default ManageMyFacilities; 
+
+
+
+
